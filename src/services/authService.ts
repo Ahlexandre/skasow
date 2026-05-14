@@ -1,6 +1,8 @@
 import type { AuthSession, LoginInput, RegisterInput, User } from '../types/user'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+// En développement, VITE_API_URL est vide : le proxy Vite prend le relais (vite.config.ts).
+// En production, renseigner VITE_API_URL avec l'URL complète du backend.
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 type ApiUser = {
   id: string
