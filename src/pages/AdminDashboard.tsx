@@ -1,152 +1,85 @@
-import {
-  BrainCircuit,
-  ClipboardList,
-  MessageSquareText,
-  SearchCheck,
-  UserRoundCheck,
-} from 'lucide-react'
+import { BrainCircuit, ClipboardList, MessageSquareText, SearchCheck, UserRoundCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import AnalysisCard from '../components/AnalysisCard'
 import DashboardTabs from '../components/DashboardTabs'
 import FilterBar, { type ProspectFilters } from '../components/FilterBar'
 import ProspectTable from '../components/ProspectTable'
 import StatCard from '../components/StatCard'
-import {
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  SectionHeader,
-  pageShell,
-} from '../components/ui'
+import { Button, EmptyState, SectionHeader, pageShell } from '../components/ui'
 import { getProspects, updateProspectStatus } from '../services/prospectService'
 import type { Prospect, ProspectStatus } from '../types/prospect'
 
-const tabs = [
-  'Vue globale',
-  'Achat',
-  'Location',
-  'Vente',
-  'Investissement',
-  'Prospects prioritaires',
-  'Dossiers à compléter',
-  'Conversations chatbot',
-  'Paramètres',
-]
-
-const initialFilters: ProspectFilters = {
-  query: '',
-  projectType: '',
-  maturity: '',
-  priority: '',
-  minScore: '',
-  bestOnly: false,
-}
+const tabs = ['Vue globale','Achat','Location','Vente','Investissement','Prospects prioritaires','Dossiers a completer','Conversations chatbot','Parametres']
+const initialFilters: ProspectFilters = { query: '', projectType: '', maturity: '', priority: '', minScore: '', bestOnly: false }
 
 export default function AdminDashboard() {
   const [prospects, setProspects] = useState<Prospect[]>(() => getProspects())
   const [activeTab, setActiveTab] = useState('Vue globale')
   const [filters, setFilters] = useState(initialFilters)
-  const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(
-    prospects[0] ?? null,
-  )
+  const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(prospects[0] ?? null)
 
-  const prioritizedProspects = useMemo(
-    () =>
-      prospects.filter(
-        (prospect) =>
-          prospect.analysis.score >= 75 &&
-          prospect.analysis.commercialPriority === 'Haute' &&
-          ['Immédiate', 'Sous 3 mois'].includes(prospect.formData.urgency) &&
-          Boolean(prospect.user.email && prospect.user.phone),
-      ),
-    [prospects],
-  )
+  const prioritizedProspects = useMemo(() =>
+    prospects.filter((p) =>
+      p.analysis.score >= 75 &&
+      p.analysis.commercialPriority === 'Haute' &&
+      ['Immediate', 'Sous 3 mois'].includes(p.formData.urgency) &&
+      Boolean(p.user.email && p.user.phone)
+    ), [prospects])
 
   const filteredProspects = useMemo(() => {
-    const tabFiltered = prospects.filter((prospect) => {
-      if (activeTab === 'Achat') return prospect.formData.projectType === 'Acheter'
-      if (activeTab === 'Location') return prospect.formData.projectType === 'Louer'
-      if (activeTab === 'Vente') return prospect.formData.projectType === 'Vendre'
-      if (activeTab === 'Investissement') return prospect.formData.projectType === 'Investir'
-      if (activeTab === 'Prospects prioritaires') return prospect.status === 'Prioritaire'
-      if (activeTab === 'Dossiers à compléter') return prospect.status === 'À compléter'
+    const tabFiltered = prospects.filter((p) => {
+      if (activeTab === 'Achat') return p.formData.projectType === 'Acheter'
+      if (activeTab === 'Location') return p.formData.projectType === 'Louer'
+      if (activeTab === 'Vente') return p.formData.projectType === 'Vendre'
+      if (activeTab === 'Investissement') return p.formData.projectType === 'Investir'
+      if (activeTab === 'Prospects prioritaires') return p.status === 'Prioritaire'
+      if (activeTab === 'Dossiers a completer') return p.status === 'À compléter'
       return true
     })
-
-    return tabFiltered
-      .filter((prospect) => {
-        const query = filters.query.trim().toLowerCase()
-        const fullName =
-          `${prospect.user.firstName} ${prospect.user.lastName}`.toLowerCase()
-        const matchesQuery =
-          !query ||
-          fullName.includes(query) ||
-          prospect.user.email.toLowerCase().includes(query) ||
-          prospect.formData.location.toLowerCase().includes(query)
-        const matchesProject =
-          !filters.projectType || prospect.formData.projectType === filters.projectType
-        const matchesMaturity =
-          !filters.maturity || prospect.analysis.maturityLevel === filters.maturity
-        const matchesPriority =
-          !filters.priority || prospect.analysis.commercialPriority === filters.priority
-        const matchesScore =
-          !filters.minScore || prospect.analysis.score >= Number(filters.minScore)
-        const matchesBest = !filters.bestOnly || prioritizedProspects.includes(prospect)
-
-        return (
-          matchesQuery &&
-          matchesProject &&
-          matchesMaturity &&
-          matchesPriority &&
-          matchesScore &&
-          matchesBest
-        )
-      })
-      .sort((a, b) => b.analysis.score - a.analysis.score)
+    return tabFiltered.filter((p) => {
+      const q = filters.query.trim().toLowerCase()
+      const name = (p.user.firstName + ' ' + p.user.lastName).toLowerCase()
+      return (
+        (!q || name.includes(q) || p.user.email.toLowerCase().includes(q) || p.formData.location.toLowerCase().includes(q)) &&
+        (!filters.projectType || p.formData.projectType === filters.projectType) &&
+        (!filters.maturity || p.analysis.maturityLevel === filters.maturity) &&
+        (!filters.priority || p.analysis.commercialPriority === filters.priority) &&
+        (!filters.minScore || p.analysis.score >= Number(filters.minScore)) &&
+        (!filters.bestOnly || prioritizedProspects.includes(p))
+      )
+    }).sort((a, b) => b.analysis.score - a.analysis.score)
   }, [activeTab, filters, prioritizedProspects, prospects])
 
   const completedRate = prospects.length
-    ? Math.round(
-        (prospects.filter((prospect) => prospect.analysis.score >= 75).length /
-          prospects.length) *
-          100,
-      )
-    : 0
+    ? Math.round((prospects.filter((p) => p.analysis.score >= 75).length / prospects.length) * 100) : 0
 
   const handleStatusChange = (id: string, status: ProspectStatus) => {
     updateProspectStatus(id, status)
-    const nextProspects = getProspects()
-    setProspects(nextProspects)
-    setSelectedProspect(nextProspects.find((prospect) => prospect.id === id) ?? null)
+    const next = getProspects()
+    setProspects(next)
+    setSelectedProspect(next.find((p) => p.id === id) ?? null)
   }
 
   if (activeTab === 'Conversations chatbot') {
     return (
       <section className={pageShell}>
         <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
-        <Card className="mt-8">
-          <SectionHeader
-            eyebrow="Chatbot"
-            title="Conversations chatbot"
-            description="Les conversations ne sont pas sauvegardées afin de limiter la conservation de données personnelles."
-          />
-        </Card>
+        <div className="mt-8 rounded-[20px] p-8" style={{ background: '#1C1C27', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <SectionHeader eyebrow="Chatbot" title="Conversations chatbot"
+            description="Les conversations ne sont pas sauvegardees afin de limiter la conservation de donnees personnelles." />
+        </div>
       </section>
     )
   }
 
-  if (activeTab === 'Paramètres') {
+  if (activeTab === 'Parametres') {
     return (
       <section className={pageShell}>
         <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
-        <Card className="mt-8">
-          <SectionHeader
-            eyebrow="Paramètres"
-            title="Préparation backend"
-            description="Les services sont structurés pour remplacer localStorage par une API: authService, prospectService et analysisService."
-          />
-        </Card>
+        <div className="mt-8 rounded-[20px] p-8" style={{ background: '#1C1C27', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <SectionHeader eyebrow="Parametres" title="Preparation backend"
+            description="Les services sont structures pour remplacer localStorage par une API : authService, prospectService et analysisService." />
+        </div>
       </section>
     )
   }
@@ -157,107 +90,54 @@ export default function AdminDashboard() {
         <SectionHeader
           eyebrow="Administration"
           title="Pilotage commercial DS Conseil"
-          description="Vue globale des prospects, scoring IA, segmentation par service et suivi des dossiers à traiter."
+          description="Vue globale des prospects, scoring IA, segmentation par service et suivi des dossiers a traiter."
         />
-        <Badge tone="accent" className="px-4 py-2 text-sm">
-          {filteredProspects.length} dossier(s) visibles
-        </Badge>
+        <span className="badge-gold">{filteredProspects.length} dossier(s) visibles</span>
       </div>
 
       <div className="mt-10">
         <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Prospects"
-          value={String(prospects.length)}
-          detail="Dossiers enregistrés"
-          icon={UserRoundCheck}
-        />
-        <StatCard
-          label="Pré-analyses"
-          value={String(prospects.length)}
-          detail="Analyses générées"
-          icon={BrainCircuit}
-        />
-        <StatCard
-          label="Prioritaires"
-          value={String(prioritizedProspects.length)}
-          detail="Score élevé et contact complet"
-          icon={ClipboardList}
-          tone="accent"
-        />
-        <StatCard
-          label="Complétude"
-          value={`${completedRate}%`}
-          detail="Dossiers forts"
-          icon={MessageSquareText}
-          tone="dark"
-        />
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Prospects"   value={String(prospects.length)}            detail="Dossiers enregistres"          icon={UserRoundCheck} />
+        <StatCard label="Pre-analyses" value={String(prospects.length)}           detail="Analyses generees"             icon={BrainCircuit} />
+        <StatCard label="Prioritaires" value={String(prioritizedProspects.length)} detail="Score eleve et contact complet" icon={ClipboardList} tone="accent" />
+        <StatCard label="Completude"   value={completedRate + "%"}                detail="Dossiers forts"                icon={MessageSquareText} tone="dark" />
       </div>
 
-      <section className="mt-8 grid gap-5 lg:grid-cols-[1fr_0.55fr]">
-        <Card tone="dark">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/50">
-                Prospects à fort potentiel
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold">
-                {prioritizedProspects.length} dossier(s) à traiter en priorité
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-white/60">
-                Score supérieur ou égal à 75, priorité haute, urgence proche et
-                coordonnées complètes.
-              </p>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => setFilters((current) => ({ ...current, bestOnly: true }))}
-              className="bg-white text-[#111111] hover:bg-[#EAE4D8]"
-            >
-              Voir les meilleurs
-            </Button>
-          </div>
-        </Card>
-
-        <Card>
+      {/* Priority banner */}
+      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_0.5fr]">
+        <div className="relative overflow-hidden rounded-[20px] p-7"
+          style={{ background: 'linear-gradient(135deg, #111118, #16161F)', border: '1px solid rgba(201,168,76,0.15)', boxShadow: '0 0 40px rgba(201,168,76,0.05)' }}>
+          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-[#C9A84C]/8 blur-[40px]" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#C9A84C]/60">Prospects a fort potentiel</p>
+          <h2 className="mt-3 font-display text-2xl text-[#F0EDE8]">{prioritizedProspects.length} dossier(s) a traiter en priorite</h2>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-[#A8A49E]">Score superieur ou egal a 75, priorite haute, urgence proche et coordonnees completes.</p>
+          <Button variant="secondary" className="mt-5" onClick={() => setFilters((c) => ({ ...c, bestOnly: true }))}>
+            Voir les meilleurs
+          </Button>
+        </div>
+        <div className="rounded-[20px] p-6" style={{ background: '#1C1C27', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-start gap-4">
-            <SearchCheck className="mt-1 text-[#1E5E52]" size={24} />
+            <SearchCheck className="mt-1 shrink-0 text-[#C9A84C]" size={22} strokeWidth={1.75} />
             <div>
-              <p className="font-semibold text-[#111111]">Lecture rapide</p>
-              <p className="mt-2 text-sm leading-7 text-[#6B7280]">
-                Les dossiers ressortent par score, statut et maturité pour
-                éviter les décisions au hasard.
-              </p>
+              <p className="font-semibold text-[#F0EDE8]">Lecture rapide</p>
+              <p className="mt-2 text-sm leading-7 text-[#A8A49E]">Les dossiers ressortent par score, statut et maturite pour eviter les decisions au hasard.</p>
             </div>
           </div>
-        </Card>
-      </section>
+        </div>
+      </div>
 
-      <div className="mt-8">
+      <div className="mt-6">
         <FilterBar filters={filters} onChange={setFilters} />
       </div>
 
-      <div className="mt-8 grid gap-8">
-        <ProspectTable
-          prospects={filteredProspects}
-          selectedId={selectedProspect?.id}
-          onSelect={setSelectedProspect}
-        />
-
-        {selectedProspect ? (
-          <AnalysisCard
-            prospect={selectedProspect}
-            onStatusChange={handleStatusChange}
-          />
-        ) : (
-          <EmptyState
-            title="Aucun dossier sélectionné"
-            description="Sélectionnez un prospect dans la liste pour afficher son analyse détaillée et mettre à jour son statut."
-          />
-        )}
+      <div className="mt-6 flex flex-col gap-6">
+        <ProspectTable prospects={filteredProspects} selectedId={selectedProspect?.id} onSelect={setSelectedProspect} />
+        {selectedProspect
+          ? <AnalysisCard prospect={selectedProspect} onStatusChange={handleStatusChange} />
+          : <EmptyState title="Aucun dossier selectionne" description="Selectionnez un prospect dans la liste pour afficher son analyse detaillee et mettre a jour son statut." />}
       </div>
     </section>
   )
