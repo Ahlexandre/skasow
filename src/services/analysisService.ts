@@ -42,7 +42,7 @@ function calculateScore(data: AnalysisFormData) {
   if (data.budget.trim()) score += 20
   if (data.phone.trim()) score += 15
   if (data.email.trim()) score += 10
-  if (['Immédiate', 'Sous 3 mois'].includes(data.urgency)) score += 20
+  if (['Immediate (moins d 1 mois)', 'Sous 3 mois'].includes(data.urgency)) score += 20
   if (['Acheter', 'Investir'].includes(data.projectType)) score += 15
   if (data.location.trim()) score += 10
   if (data.surface.trim() || data.propertyType.trim()) score += 10
