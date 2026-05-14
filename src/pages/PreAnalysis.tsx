@@ -1,33 +1,8 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  BrainCircuit,
-  CheckCircle2,
-  Clock,
-  Home,
-  KeyRound,
-  LockKeyhole,
-  MapPin,
-  ShieldCheck,
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, BrainCircuit, CheckCircle2, Clock, Home, KeyRound, LockKeyhole, MapPin, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
-import {
-  Badge,
-  Button,
-  Card,
-  IconBadge,
-  Input,
-  ProgressSteps,
-  SectionHeader,
-  Select,
-  Textarea,
-  labelClass,
-  pageShell,
-  primaryButton,
-  secondaryButton,
-} from '../components/ui'
+import { Button, Input, ProgressSteps, Select, Textarea, labelClass, primaryButton, secondaryButton } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
 import { generateAnalysis } from '../services/analysisService'
 import { saveProspect } from '../services/prospectService'
@@ -37,69 +12,111 @@ import { cn } from '../utils/cn'
 import { readStorage, removeStorage, writeStorage } from '../utils/storage'
 
 const DRAFT_KEY = 'ds-pending-analysis-draft'
+const initialForm: AnalysisFormData = { projectType: 'Acheter', location: '', budget: '', propertyType: '', surface: '', urgency: 'Sous 3 mois', objective: '', name: '', email: '', phone: '', consent: false }
+const steps = ['Projet','Localisation','Budget','Objectif','Coordonnees','Confirmation','Resultat']
 
-const initialForm: AnalysisFormData = {
-  projectType: 'Acheter',
-  location: '',
-  budget: '',
-  propertyType: '',
-  surface: '',
-  urgency: 'Sous 3 mois',
-  objective: '',
-  name: '',
-  email: '',
-  phone: '',
-  consent: false,
-}
-
-const steps = [
-  'Votre projet',
-  'Localisation',
-  'Budget et bien',
-  'Objectif',
-  'Coordonnées',
-  'Confirmation',
-  'Analyse générée',
+/* Villes et quartiers du Mali */
+const MALI_LOCATIONS = [
+  // Bamako — communes
+  'Bamako — Commune I (Djélibougou, Boulkassoumbougou)',
+  'Bamako — Commune II (Niarela, Quinzambougou, TSF)',
+  'Bamako — Commune III (Bamako-Coura, Médina-Coura, Missira)',
+  'Bamako — Commune IV (Lafiabougou, Taliko, Sikoroni)',
+  'Bamako — Commune V (Badalabougou, Kalaban-Coura, Sabalibougou)',
+  'Bamako — Commune VI (Sogoniko, Magnambougou, Niamakoro)',
+  // Quartiers prisés
+  'ACI 2000 (Hamdallaye)',
+  'Badalabougou',
+  'Kalaban-Coura',
+  'Kalaban-Coura Extension',
+  'Sotuba',
+  'Sotuba ACI',
+  'Missabougou',
+  'Sénou',
+  'Yirimadio',
+  'Faladiè',
+  'Sabalibougou',
+  'Magnambougou',
+  'Niamakoro',
+  'Banconi',
+  'Sikoroni',
+  'Lafiabougou',
+  'Djicoroni Para',
+  'Garantibougou',
+  'Korofina',
+  'Niarela',
+  'Quinzambougou',
+  'Hippodrome',
+  'Point G',
+  'Boulkassoumbougou',
+  'Titibougou',
+  'Dialakorodji',
+  'Mountougoula',
+  'Kabala',
+  // Autres villes du Mali
+  'Sikasso',
+  'Mopti',
+  'Ségou',
+  'Kayes',
+  'Koutiala',
+  'Gao',
+  'Tombouctou',
+  'Kidal',
+  'San',
+  'Bougouni',
+  'Kati',
+  'Kolokani',
+  'Niono',
+  'Markala',
+  'Dioïla',
+  'Fana',
+  'Kangaba',
+  'Yanfolila',
+  'Kolondiéba',
 ]
 
-const projectOptions: Array<{
-  value: ProjectType
-  title: string
-  text: string
-  icon: typeof Home
-}> = [
-  {
-    value: 'Acheter',
-    title: 'Acheter',
-    text: 'Trouver un bien fiable et adapté à votre budget.',
-    icon: Home,
-  },
-  {
-    value: 'Louer',
-    title: 'Louer',
-    text: 'Identifier un logement ou local avec des critères clairs.',
-    icon: KeyRound,
-  },
-  {
-    value: 'Vendre',
-    title: 'Vendre',
-    text: 'Structurer votre dossier pour mieux qualifier les prospects.',
-    icon: ShieldCheck,
-  },
-  {
-    value: 'Investir',
-    title: 'Investir',
-    text: 'Évaluer potentiel, quartier, rendement et niveau de risque.',
-    icon: BrainCircuit,
-  },
+/* Tranches de budget FCFA */
+const BUDGET_RANGES = [
+  'Moins de 5 000 000 FCFA',
+  '5 000 000 — 10 000 000 FCFA',
+  '10 000 000 — 20 000 000 FCFA',
+  '20 000 000 — 35 000 000 FCFA',
+  '35 000 000 — 50 000 000 FCFA',
+  '50 000 000 — 75 000 000 FCFA',
+  '75 000 000 — 100 000 000 FCFA',
+  '100 000 000 — 150 000 000 FCFA',
+  '150 000 000 — 250 000 000 FCFA',
+  'Plus de 250 000 000 FCFA',
+  'Budget à définir avec DS Conseil',
+]
+
+/* Types de biens */
+const PROPERTY_TYPES = [
+  'Maison individuelle',
+  'Villa',
+  'Appartement',
+  'Studio',
+  'Terrain nu',
+  'Terrain viabilisé',
+  'Local commercial',
+  'Bureau',
+  'Entrepôt / Hangar',
+  'Immeuble de rapport',
+  'Duplex',
+  'Autre',
+]
+
+const projectOptions: Array<{ value: ProjectType; title: string; text: string; icon: typeof Home }> = [
+  { value: 'Acheter',  title: 'Acheter',   text: 'Trouver un bien fiable et adapte a votre budget.',           icon: Home },
+  { value: 'Louer',   title: 'Louer',     text: 'Identifier un logement ou local avec des criteres clairs.',  icon: KeyRound },
+  { value: 'Vendre',  title: 'Vendre',    text: 'Structurer votre dossier pour mieux qualifier les prospects.',icon: ShieldCheck },
+  { value: 'Investir',title: 'Investir',  text: 'Evaluer potentiel, quartier, rendement et risque.',          icon: BrainCircuit },
 ]
 
 export default function PreAnalysis() {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
-  const [formData, setFormData] = useState<AnalysisFormData>(() =>
-    readStorage(DRAFT_KEY, initialForm),
-  )
+  const [formData, setFormData] = useState<AnalysisFormData>(() => readStorage(DRAFT_KEY, initialForm))
   const [currentStep, setCurrentStep] = useState(0)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [prospect, setProspect] = useState<Prospect | null>(null)
@@ -108,394 +125,297 @@ export default function PreAnalysis() {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const [transmissionConsent, setTransmissionConsent] = useState(false)
 
-  const completedRequiredFields = [
-    formData.projectType,
-    formData.location,
-    formData.budget,
-    formData.propertyType,
-    formData.objective,
-  ].filter(Boolean).length
-
+  const completedFields = [formData.projectType, formData.location, formData.budget, formData.propertyType, formData.objective].filter(Boolean).length
   const progressStep = result ? 6 : awaitingConfirmation ? 5 : currentStep
 
   const updateField = (field: keyof AnalysisFormData, value: string | boolean) => {
-    setFormData((current) => ({ ...current, [field]: value }))
-    setAuthRequired(false)
-    setAwaitingConfirmation(false)
+    setFormData((c) => ({ ...c, [field]: value }))
+    setAuthRequired(false); setAwaitingConfirmation(false)
   }
 
   const canContinue =
     currentStep === 0 ||
     (currentStep === 1 && Boolean(formData.location.trim())) ||
-    (currentStep === 2 &&
-      Boolean(formData.budget.trim()) &&
-      Boolean(formData.propertyType.trim())) ||
+    (currentStep === 2 && Boolean(formData.budget.trim()) && Boolean(formData.propertyType.trim())) ||
     (currentStep === 3 && Boolean(formData.objective.trim())) ||
     currentStep === 4 ||
     (currentStep === 5 && formData.consent)
 
-  const goNext = () => {
-    if (!canContinue) return
-    setCurrentStep((step) => Math.min(step + 1, 5))
-  }
+  const goNext = () => { if (!canContinue) return; setCurrentStep((s) => Math.min(s + 1, 5)) }
+  const goBack = () => { setCurrentStep((s) => Math.max(s - 1, 0)); setAuthRequired(false); setAwaitingConfirmation(false) }
 
-  const goBack = () => {
-    setCurrentStep((step) => Math.max(step - 1, 0))
-    setAuthRequired(false)
-    setAwaitingConfirmation(false)
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     if (!formData.consent) return
-
     writeStorage(DRAFT_KEY, formData)
-
-    if (!currentUser) {
-      setAuthRequired(true)
-      return
-    }
-
+    if (!currentUser) { setAuthRequired(true); return }
     setAwaitingConfirmation(true)
-  }
-
-  const handleAuthRedirect = () => {
-    writeStorage(DRAFT_KEY, formData)
-    navigate('/auth', { state: { from: '/pre-analysis' } })
   }
 
   const generateAndSave = async () => {
     if (!currentUser || !transmissionConsent) return
-
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 450))
-    const enrichedFormData = {
-      ...formData,
-      name: formData.name || `${currentUser.firstName} ${currentUser.lastName}`.trim(),
-      email: formData.email || currentUser.email,
-      phone: formData.phone || currentUser.phone,
+    try {
+      const enriched = {
+        ...formData,
+        name: formData.name || `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+        email: formData.email || currentUser.email,
+        phone: formData.phone || currentUser.phone,
+      }
+      // Génération locale pour affichage immédiat, puis envoi au backend
+      const localAnalysis = generateAnalysis(enriched)
+      const saved = await saveProspect(currentUser, enriched, localAnalysis)
+      setResult(saved.analysis)
+      setProspect(saved)
+      setAwaitingConfirmation(false)
+      removeStorage(DRAFT_KEY)
+    } catch (err) {
+      console.error('Erreur lors de la sauvegarde de l\'analyse :', err)
+    } finally {
+      setIsLoading(false)
     }
-    const analysis = generateAnalysis(enrichedFormData)
-    const savedProspect = saveProspect(currentUser, enrichedFormData, analysis)
-    setResult(analysis)
-    setProspect(savedProspect)
-    setAwaitingConfirmation(false)
-    setIsLoading(false)
-    removeStorage(DRAFT_KEY)
   }
 
   return (
-    <section className={pageShell}>
-      <SectionHeader
-        eyebrow="Pré-analyse IA"
-        title="Un diagnostic immobilier guidé, clair et actionnable"
-        description="Répondez étape par étape. DS Conseil transforme vos informations en score, niveau de maturité, priorité commerciale et prochain pas."
-        centered
-      />
+    <div className="px-6 py-16 lg:px-16 lg:py-24">
+      {/* En-tete */}
+      <div className="mb-12 border-b border-white/5 pb-10">
+        <span className="text-[11px] font-mono tracking-[0.2em] text-[#6B6760] uppercase">003 — Analyse IA</span>
+        <h1 className="mt-4 font-display text-4xl tracking-[-0.04em] text-[#F0EDE8] lg:text-5xl">
+          Votre diagnostic<br />immobilier
+        </h1>
+        <p className="mt-4 max-w-lg text-sm leading-7 text-[#6B6760]">
+          Repondez etape par etape. DS Conseil transforme vos informations en score, maturite et prochaine action.
+        </p>
+      </div>
 
-      <div className="mt-12">
+      {/* Progress */}
+      <div className="mb-10">
         <ProgressSteps steps={steps} currentStep={progressStep} />
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-3xl border border-neutral-200 bg-white shadow-sm"
-        >
-          <div className="border-b border-neutral-200 bg-[#FAFAF8] p-6 sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <Badge tone="accent">Étape {Math.min(progressStep + 1, 7)}/7</Badge>
-                <h2 className="mt-4 text-2xl font-semibold text-[#111111]">
-                  {steps[progressStep]}
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-[#6B7280]">
-                  Les champs essentiels sont demandés au bon moment pour garder
-                  le parcours léger et lisible.
-                </p>
-              </div>
-              <div className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#1E5E52] shadow-sm">
-                {completedRequiredFields}/5 informations clés
-              </div>
+      <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        {/* Formulaire */}
+        <form onSubmit={handleSubmit} className="rounded-[20px]" style={{ border: '1px solid rgba(255,255,255,0.07)', background: '#111118' }}>
+          {/* Header form */}
+          <div className="flex items-center justify-between p-6 lg:p-8" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div>
+              <span className="font-mono text-xs text-[#6B6760]">Etape {Math.min(progressStep + 1, 7)}/7</span>
+              <h2 className="mt-1 font-display text-xl text-[#F0EDE8]">{steps[progressStep]}</h2>
             </div>
-            <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#EAE4D8]">
-              <div
-                className="h-full rounded-full bg-[#1E5E52] transition-all duration-500"
-                style={{ width: `${(completedRequiredFields / 5) * 100}%` }}
-              />
+            <div className="text-right">
+              <span className="font-display text-2xl text-[#C9A84C]">{completedFields}</span>
+              <span className="text-sm text-[#6B6760]">/5</span>
+              <p className="text-[10px] text-[#6B6760]">infos cles</p>
             </div>
           </div>
 
-          <div className="p-6 sm:p-8">
+          {/* Progress bar */}
+          <div className="h-[2px] bg-white/5">
+            <div className="progress-gold h-full" style={{ width: ((completedFields / 5) * 100) + "%" }} />
+          </div>
+
+          {/* Corps */}
+          <div className="p-6 lg:p-8">
             {currentStep === 0 && (
-              <div className="grid gap-4 md:grid-cols-2">
-                {projectOptions.map((option) => (
-                  <ChoiceCard
-                    key={option.value}
-                    active={formData.projectType === option.value}
-                    icon={option.icon}
-                    title={option.title}
-                    text={option.text}
-                    onClick={() => updateField('projectType', option.value)}
-                  />
+              <div className="grid gap-3 sm:grid-cols-2">
+                {projectOptions.map((opt) => (
+                  <button key={opt.value} type="button" onClick={() => updateField('projectType', opt.value)}
+                    className={cn(
+                      'rounded-[14px] p-5 text-left transition-all duration-200 focus:outline-none',
+                      formData.projectType === opt.value
+                        ? 'border border-[#C9A84C]/40 bg-[#C9A84C]/8'
+                        : 'border border-white/6 bg-[#1C1C27] hover:border-white/12',
+                    )}>
+                    <p className="font-semibold text-[#F0EDE8]">{opt.title}</p>
+                    <p className="mt-1.5 text-xs leading-6 text-[#6B6760]">{opt.text}</p>
+                  </button>
                 ))}
               </div>
             )}
-
             {currentStep === 1 && (
-              <div className="grid gap-6">
+              <div className="flex flex-col gap-5">
                 <label className={labelClass}>
-                  Ville ou quartier recherché
-                  <Input
-                    required
-                    value={formData.location}
-                    onChange={(event) => updateField('location', event.target.value)}
-                    placeholder="Bamako, ACI 2000, Kalaban, Sotuba..."
-                  />
+                  Ville ou quartier
+                  <Select required value={formData.location} onChange={(e) => updateField('location', e.target.value)}>
+                    <option value="">-- Choisissez une localisation --</option>
+                    <optgroup label="Bamako — Communes">
+                      {MALI_LOCATIONS.slice(0, 6).map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Bamako — Quartiers">
+                      {MALI_LOCATIONS.slice(6, 32).map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Autres villes du Mali">
+                      {MALI_LOCATIONS.slice(32).map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </optgroup>
+                  </Select>
                 </label>
-                <Card tone="muted" className="p-5">
-                  <div className="flex gap-4">
-                    <IconBadge icon={MapPin} />
-                    <p className="text-sm leading-7 text-[#6B7280]">
-                      Une localisation précise aide DS Conseil à mieux évaluer
-                      cohérence du budget, disponibilité et urgence du dossier.
-                    </p>
-                  </div>
-                </Card>
+                <div className="flex items-start gap-3 rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-[#C9A84C]" strokeWidth={2} />
+                  <p className="text-xs leading-6 text-[#6B6760]">Une localisation precise aide DS Conseil a mieux evaluer la coherence du budget et l urgence du dossier.</p>
+                </div>
               </div>
             )}
-
             {currentStep === 2 && (
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <label className={labelClass}>
-                  Budget
-                  <Input
-                    required
-                    value={formData.budget}
-                    onChange={(event) => updateField('budget', event.target.value)}
-                    placeholder="Ex. 35 000 000 FCFA"
-                  />
+                  Budget (en FCFA)
+                  <Select required value={formData.budget} onChange={(e) => updateField('budget', e.target.value)}>
+                    <option value="">-- Selectionnez une tranche --</option>
+                    {BUDGET_RANGES.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </Select>
                 </label>
                 <label className={labelClass}>
                   Type de bien
-                  <Input
-                    required
-                    value={formData.propertyType}
-                    onChange={(event) => updateField('propertyType', event.target.value)}
-                    placeholder="Maison, terrain, appartement..."
-                  />
+                  <Select required value={formData.propertyType} onChange={(e) => updateField('propertyType', e.target.value)}>
+                    <option value="">-- Selectionnez un type --</option>
+                    {PROPERTY_TYPES.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </Select>
                 </label>
                 <label className={labelClass}>
-                  Surface souhaitée
-                  <Input
-                    value={formData.surface}
-                    onChange={(event) => updateField('surface', event.target.value)}
-                    placeholder="Ex. 300 m2"
-                  />
+                  Surface souhaitee
+                  <Select value={formData.surface} onChange={(e) => updateField('surface', e.target.value)}>
+                    <option value="">-- Non definie --</option>
+                    <option>Moins de 50 m²</option>
+                    <option>50 — 100 m²</option>
+                    <option>100 — 200 m²</option>
+                    <option>200 — 300 m²</option>
+                    <option>300 — 500 m²</option>
+                    <option>500 — 1 000 m²</option>
+                    <option>Plus de 1 000 m²</option>
+                    <option>A definir avec DS Conseil</option>
+                  </Select>
                 </label>
                 <label className={labelClass}>
                   Urgence
-                  <Select
-                    value={formData.urgency}
-                    onChange={(event) => updateField('urgency', event.target.value)}
-                  >
-                    <option>Immédiate</option>
+                  <Select value={formData.urgency} onChange={(e) => updateField('urgency', e.target.value)}>
+                    <option>Immediate (moins d 1 mois)</option>
                     <option>Sous 3 mois</option>
                     <option>Dans 6 mois</option>
-                    <option>Exploration</option>
+                    <option>Exploration (pas de delai fixe)</option>
                   </Select>
                 </label>
+                <div className="col-span-2 flex items-start gap-3 rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
+                  <p className="text-xs leading-6 text-[#6B6760]">Tous les montants sont en <strong className="text-[#C9A84C]">Francs CFA (FCFA)</strong>. Si votre budget est flexible, choisissez la tranche la plus proche ou "Budget a definir".</p>
+                </div>
               </div>
             )}
-
             {currentStep === 3 && (
-              <label className={labelClass}>
-                Objectif et contraintes importantes
-                <Textarea
-                  required
-                  rows={6}
-                  value={formData.objective}
-                  onChange={(event) => updateField('objective', event.target.value)}
-                  placeholder="Décrivez votre besoin, vos contraintes, vos attentes, vos délais ou vos critères non négociables."
-                />
-              </label>
+              <label className={labelClass}>Objectif et contraintes<Textarea required rows={6} value={formData.objective} onChange={(e) => updateField('objective', e.target.value)} placeholder="Decrivez votre besoin, vos contraintes, vos attentes..." /></label>
             )}
-
             {currentStep === 4 && (
-              <div className="grid gap-5 md:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-3">
+                <label className={labelClass}>Nom<Input value={formData.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Facultatif" /></label>
+                <label className={labelClass}>Email<Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} placeholder="Facultatif" /></label>
                 <label className={labelClass}>
-                  Nom
-                  <Input
-                    value={formData.name}
-                    onChange={(event) => updateField('name', event.target.value)}
-                    placeholder="Facultatif"
-                  />
-                </label>
-                <label className={labelClass}>
-                  Email
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(event) => updateField('email', event.target.value)}
-                    placeholder="Facultatif"
-                  />
-                </label>
-                <label className={labelClass}>
-                  Téléphone
-                  <Input
-                    value={formData.phone}
-                    onChange={(event) => updateField('phone', event.target.value)}
-                    placeholder="+223..."
-                  />
-                </label>
-              </div>
-            )}
-
-            {currentStep === 5 && (
-              <div className="grid gap-6">
-                <Card tone="muted" className="p-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <SummaryItem label="Projet" value={formData.projectType} />
-                    <SummaryItem label="Localisation" value={formData.location} />
-                    <SummaryItem label="Budget" value={formData.budget} />
-                    <SummaryItem label="Bien" value={formData.propertyType} />
-                    <SummaryItem label="Urgence" value={formData.urgency} />
-                    <SummaryItem
-                      label="Contact"
-                      value={formData.phone || formData.email || 'À compléter'}
+                  Telephone
+                  <div className="flex">
+                    <span className="flex items-center rounded-l-[14px] border border-r-0 border-white/12 bg-white/5 px-3 text-sm text-[#6B6760] whitespace-nowrap">+223</span>
+                    <Input
+                      value={formData.phone.replace(/^\+223\s?/, '')}
+                      onChange={(e) => updateField('phone', e.target.value ? '+223 ' + e.target.value : '')}
+                      placeholder="7X XX XX XX"
+                      className="rounded-l-none"
                     />
                   </div>
-                </Card>
-                <label className="flex items-start gap-3 rounded-3xl border border-neutral-200 bg-white p-5 text-sm leading-6 text-[#6B7280]">
-                  <input
-                    type="checkbox"
-                    checked={formData.consent}
-                    onChange={(event) => updateField('consent', event.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#1E5E52]"
-                  />
-                  J’accepte que ces informations soient utilisées pour préparer
-                  ma pré-analyse immobilière.
+                </label>
+              </div>
+            )}
+            {currentStep === 5 && (
+              <div className="flex flex-col gap-5">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[['Projet', formData.projectType],['Localisation', formData.location],['Budget', formData.budget],['Bien', formData.propertyType],['Urgence', formData.urgency],['Contact', formData.phone || formData.email || 'A completer']].map(([label, value]) => (
+                    <div key={label} className="flex flex-col gap-1 rounded-[10px] p-3" style={{ background: '#1C1C27' }}>
+                      <span className="font-mono text-[10px] tracking-[0.15em] text-[#6B6760] uppercase">{label}</span>
+                      <span className="text-sm font-semibold text-[#F0EDE8]">{value || 'A preciser'}</span>
+                    </div>
+                  ))}
+                </div>
+                <label className="flex items-start gap-3 text-sm leading-6 text-[#6B6760]">
+                  <input type="checkbox" checked={formData.consent} onChange={(e) => updateField('consent', e.target.checked)} className="mt-1 h-4 w-4 accent-[#C9A84C]" />
+                  J accepte que ces informations soient utilisees pour preparer ma pre-analyse.
                 </label>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-neutral-200 bg-[#FAFAF8] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={goBack}
-              disabled={currentStep === 0 || Boolean(result)}
-            >
-              <ArrowLeft size={17} />
-              Retour
+          {/* Footer form */}
+          <div className="flex items-center justify-between p-6 lg:p-8" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <Button type="button" variant="ghost" onClick={goBack} disabled={currentStep === 0 || Boolean(result)}>
+              <ArrowLeft size={15} strokeWidth={2} /> Retour
             </Button>
-
-            {currentStep < 5 ? (
-              <Button type="button" onClick={goNext} disabled={!canContinue}>
-                Continuer
-                <ArrowRight size={17} />
-              </Button>
-            ) : (
-              <button type="submit" disabled={!formData.consent} className={primaryButton}>
-                <BrainCircuit size={18} />
-                Obtenir mon analyse personnalisée
-              </button>
-            )}
+            {currentStep < 5
+              ? <Button type="button" onClick={goNext} disabled={!canContinue}>Continuer <ArrowRight size={15} strokeWidth={2} /></Button>
+              : <button type="submit" disabled={!formData.consent} className={primaryButton}><BrainCircuit size={16} strokeWidth={1.75} />Obtenir mon analyse</button>}
           </div>
         </form>
 
-        <aside className="lg:sticky lg:top-28 lg:self-start">
-          <Card>
+        {/* Sidebar */}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-[20px] p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex items-center gap-3">
-              <IconBadge icon={result ? CheckCircle2 : LockKeyhole} />
+              <div className={"flex h-10 w-10 items-center justify-center rounded-[12px] " + (result ? "bg-[#C9A84C] text-[#0A0A0F]" : "bg-[#C9A84C]/12 text-[#C9A84C]")}>
+                {result ? <CheckCircle2 size={20} strokeWidth={2} /> : <LockKeyhole size={20} strokeWidth={1.75} />}
+              </div>
               <div>
-                <h2 className="text-2xl font-semibold text-[#111111]">
-                  Analyse personnalisée
-                </h2>
-                <p className="mt-1 text-sm text-[#6B7280]">
-                  Score, maturité, priorité et prochaine action.
-                </p>
+                <p className="font-semibold text-[#F0EDE8]">Analyse personnalisee</p>
+                <p className="text-xs text-[#6B6760]">Score, maturite, priorite, action.</p>
               </div>
             </div>
 
             {authRequired && (
-              <div className="mt-8 rounded-3xl bg-[#F5F5F3] p-6">
-                <p className="font-bold text-[#111111]">
-                  Connectez-vous ou créez un compte pour obtenir votre analyse.
-                </p>
-                <p className="mt-3 text-sm leading-7 text-[#6B7280]">
-                  Le brouillon est conservé localement pour reprendre le
-                  diagnostic après connexion.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleAuthRedirect}
-                  className={`${primaryButton} mt-6`}
-                >
-                  Se connecter / S’inscrire
+              <div className="mt-6 rounded-[14px] p-5" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)' }}>
+                <p className="font-semibold text-[#F0EDE8]">Connexion requise</p>
+                <p className="mt-2 text-xs leading-6 text-[#6B6760]">Le brouillon est conserve localement pour reprendre apres connexion.</p>
+                <button type="button" onClick={() => { writeStorage(DRAFT_KEY, formData); navigate('/auth', { state: { from: '/pre-analysis' } }) }}
+                  className={primaryButton + " mt-4 w-full"}>
+                  Se connecter
                 </button>
               </div>
             )}
 
             {awaitingConfirmation && currentUser && (
-              <div className="mt-8 rounded-3xl bg-[#F5F5F3] p-6">
+              <div className="mt-6 rounded-[14px] p-5" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)' }}>
                 <div className="flex gap-3">
-                  <Clock className="mt-1 shrink-0 text-[#1E5E52]" size={20} />
-                  <div>
-                    <p className="font-bold text-[#111111]">
-                      Confirmez l’envoi à DS Conseil.
-                    </p>
-                    <p className="mt-3 text-sm leading-7 text-[#6B7280]">
-                      Vos informations seront utilisées pour générer l’analyse
-                      et permettre un suivi commercial.
-                    </p>
-                  </div>
+                  <Clock className="mt-0.5 shrink-0 text-[#C9A84C]" size={16} strokeWidth={2} />
+                  <p className="text-sm font-semibold text-[#F0EDE8]">Confirmez l envoi a DS Conseil.</p>
                 </div>
-                <label className="mt-5 flex items-start gap-3 text-sm leading-6 text-[#6B7280]">
-                  <input
-                    type="checkbox"
-                    checked={transmissionConsent}
-                    onChange={(event) => setTransmissionConsent(event.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#1E5E52]"
-                  />
-                  J’accepte que mes informations soient transmises à DS Conseil
-                  pour être recontacté.
+                <label className="mt-4 flex items-start gap-3 text-xs leading-6 text-[#6B6760]">
+                  <input type="checkbox" checked={transmissionConsent} onChange={(e) => setTransmissionConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C9A84C]" />
+                  J accepte que mes informations soient transmises a DS Conseil.
                 </label>
-                <button
-                  type="button"
-                  disabled={!transmissionConsent || isLoading}
-                  onClick={() => void generateAndSave()}
-                  className={`${primaryButton} mt-6 w-full`}
-                >
-                  {isLoading ? 'Génération en cours...' : 'Envoyer et générer'}
+                <button type="button" disabled={!transmissionConsent || isLoading} onClick={() => void generateAndSave()}
+                  className={primaryButton + " mt-4 w-full"}>
+                  {isLoading ? 'Generation...' : 'Envoyer et generer'}
                 </button>
               </div>
             )}
 
             {prospect && result && (
-              <div className="mt-8">
-                <Link to="/mon-espace" className={secondaryButton}>
-                  Voir mon espace
-                </Link>
-              </div>
+              <Link to="/mon-espace" className={secondaryButton + " mt-6 w-full"}>Voir mon espace</Link>
             )}
 
             {!authRequired && !awaitingConfirmation && !result && (
-              <div className="mt-8 grid gap-4">
-                {[
-                  'Aucune information sensible affichée publiquement.',
-                  'Connexion demandée seulement avant la génération.',
-                  'Résultat structuré pour faciliter le prochain échange.',
-                ].map((item) => (
-                  <div key={item} className="flex gap-3 text-sm leading-6 text-[#6B7280]">
-                    <CheckCircle2 className="mt-0.5 shrink-0 text-[#1E5E52]" size={18} />
+              <div className="mt-6 flex flex-col gap-3">
+                {['Aucune info sensible affichee publiquement.','Connexion demandee seulement avant la generation.','Resultat structure et actionnable.'].map((item) => (
+                  <div key={item} className="flex gap-2.5 text-xs leading-6 text-[#6B6760]">
+                    <CheckCircle2 className="mt-0.5 shrink-0 text-[#C9A84C]" size={14} strokeWidth={2} />
                     <span>{item}</span>
                   </div>
                 ))}
               </div>
             )}
-          </Card>
+          </div>
         </aside>
       </div>
 
@@ -504,50 +424,6 @@ export default function PreAnalysis() {
           <AnalysisCard prospect={prospect} />
         </div>
       )}
-    </section>
-  )
-}
-
-function ChoiceCard({
-  active,
-  icon: Icon,
-  title,
-  text,
-  onClick,
-}: {
-  active: boolean
-  icon: typeof Home
-  title: string
-  text: string
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'rounded-3xl border p-5 text-left transition duration-300 focus:outline-none focus:ring-4 focus:ring-[#1E5E52]/10',
-        active
-          ? 'border-[#1E5E52] bg-[#F5F5F3]'
-          : 'border-neutral-200 bg-white hover:border-[#1E5E52]/30 hover:bg-[#FAFAF8]',
-      )}
-    >
-      <IconBadge icon={Icon} tone={active ? 'dark' : 'light'} />
-      <p className="mt-5 text-lg font-semibold text-[#111111]">
-        {title}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-[#6B7280]">{text}</p>
-    </button>
-  )
-}
-
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-white p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6B7280]">
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-bold text-[#111111]">{value || 'À préciser'}</p>
     </div>
   )
 }
