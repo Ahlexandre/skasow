@@ -1,60 +1,29 @@
 import type { LucideIcon } from 'lucide-react'
-import { IconBadge } from './ui'
 import { cn } from '../utils/cn'
 
-type StatCardProps = {
-  icon: LucideIcon
-  label: string
-  value: string
-  detail: string
-  tone?: 'default' | 'accent' | 'dark'
-}
+type StatCardProps = { icon: LucideIcon; label: string; value: string; detail: string; tone?: 'default' | 'accent' | 'dark' }
 
-export default function StatCard({
-  icon: Icon,
-  label,
-  value,
-  detail,
-  tone = 'default',
-}: StatCardProps) {
+export default function StatCard({ icon: Icon, label, value, detail, tone = 'default' }: StatCardProps) {
   return (
-    <article
-      className={cn(
-        'rounded-3xl border p-6 shadow-sm transition duration-300 hover:-translate-y-0.5',
-        tone === 'dark'
-          ? 'border-white/10 bg-[#111111] text-white'
-          : tone === 'accent'
-            ? 'border-[#EAE4D8] bg-[#F5F5F3]'
-            : 'border-neutral-200 bg-white',
-      )}
-    >
+    <article className={cn(
+      'rounded-[18px] border p-6 transition-all duration-250 hover:-translate-y-0.5',
+      tone === 'dark'   ? 'border-[#C9A84C]/18 bg-[#C9A84C]/6'
+      : tone === 'accent' ? 'border-[#C9A84C]/12 bg-[#C9A84C]/4'
+      : 'border-[rgba(255,255,255,0.06)] bg-[#1A1A24]',
+    )}>
       <div className="flex items-start justify-between gap-4">
-        <p
-          className={cn(
-            'text-sm font-medium',
-            tone === 'dark' ? 'text-white/65' : 'text-[#6B7280]',
-          )}
-        >
-          {label}
-        </p>
-        <IconBadge icon={Icon} tone={tone === 'dark' ? 'dark' : 'light'} />
+        <span className="label-mono">{label}</span>
+        <span className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]',
+          tone !== 'default' ? 'bg-[#C9A84C]/15 text-[#C9A84C]' : 'bg-white/5 text-[#5E5B56]',
+        )}>
+          <Icon size={16} strokeWidth={1.75} />
+        </span>
       </div>
-      <p
-        className={cn(
-          'mt-6 text-3xl font-semibold',
-          tone === 'dark' ? 'text-white' : 'text-[#111111]',
-        )}
-      >
+      <p className={cn('title-display mt-5 text-3xl', tone !== 'default' ? 'text-[#C9A84C]' : 'text-[#EDEAE4]')}>
         {value}
       </p>
-      <p
-        className={cn(
-          'mt-2 text-sm leading-6',
-          tone === 'dark' ? 'text-white/60' : 'text-[#6B7280]',
-        )}
-      >
-        {detail}
-      </p>
+      <p className="mt-1.5 text-xs leading-5 text-[#5E5B56]">{detail}</p>
     </article>
   )
 }
