@@ -25,10 +25,6 @@ export type LoginInput = {
   password: string
 }
 
-export type StoredUser = User & {
-  password: string
-}
-
 export type AuthSession = {
   user: User
   accessToken: string
