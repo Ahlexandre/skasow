@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { loginUser, logoutUser, registerUser } from '../services/authService'
 import type { AuthSession, User } from '../types/user'
 import { readStorage, removeStorage, writeStorage } from '../utils/storage'
@@ -14,14 +14,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     readStorage<User | null>(SESSION_KEY, null),
   )
 
-  const persistSession = (session: AuthSession) => {
+  // Mémorisé pour éviter le stale closure dans le useMemo ci-dessous
+  const persistSession = useCallback((session: AuthSession) => {
     setCurrentUser(session.user)
     writeStorage(SESSION_KEY, session.user)
     writeStorage<StoredTokens>(TOKENS_KEY, {
       accessToken: session.accessToken,
       refreshToken: session.refreshToken,
     })
-  }
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         removeStorage(TOKENS_KEY)
       },
     }),
-    [currentUser],
+    [currentUser, persistSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

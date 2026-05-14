@@ -1,132 +1,104 @@
 import { Bot, Send } from 'lucide-react'
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import {
-  IconBadge,
-  SectionHeader,
-  inputClass,
-  narrowShell,
-} from '../components/ui'
-import {
-  requestChatbotReply,
-  type ChatMessage,
-} from '../services/chatbotService'
+import { useRef, useState, type FormEvent } from 'react'
+import { requestChatbotReply, type ChatMessage } from '../services/chatbotService'
+import { SectionHeader, narrowShell } from '../components/ui'
 
-const suggestions = [
-  'Je veux acheter',
-  'Je veux louer',
-  'Quels documents sont nécessaires ?',
-  'Contacter DS Conseil',
-]
-
-const initialMessages: ChatMessage[] = [
-  {
-    role: 'assistant',
-    content:
-      'Bonjour, je suis l’assistant DS Conseil. Je peux vous orienter sur un projet immobilier au Mali.',
-  },
-]
+const suggestions = ['Je veux acheter','Faire une pre-analyse','Documents necessaires','Contacter DS Conseil']
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [inputValue, setInputValue] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: 'Bonjour ! Je suis l assistant DS Conseil. Je peux vous orienter vers le bon parcours immobilier.' },
+  ])
 
   const sendMessage = async (message: string) => {
-    const trimmedMessage = message.trim()
-    if (!trimmedMessage) {
-      return
-    }
-
-    setMessages((current) => [
-      ...current,
-      { role: 'user', content: trimmedMessage },
-    ])
+    const trimmed = message.trim()
+    if (!trimmed) return
+    setMessages((c) => [...c, { role: 'user', content: trimmed }])
     setInputValue('')
-    setIsLoading(true)
-    const reply = await requestChatbotReply(trimmedMessage)
-    setMessages((current) => [...current, { role: 'assistant', content: reply }])
-    setIsLoading(false)
+    setIsTyping(true)
+    const reply = await requestChatbotReply(trimmed)
+    setIsTyping(false)
+    setMessages((c) => [...c, { role: 'assistant', content: reply }])
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    void sendMessage(inputValue)
-  }
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); void sendMessage(inputValue) }
 
   return (
     <section className={narrowShell}>
-      <SectionHeader
-        eyebrow="Chatbot"
-        title="Assistant immobilier DS Conseil"
-        description="Une interface minimaliste pour répondre aux questions simples et orienter les prospects sans créer de compte."
-        centered
-      />
+      <SectionHeader eyebrow="Chatbot" title="Assistant immobilier DS Conseil" description="Posez vos questions, obtenez des orientations rapides et lancez votre pre-analyse quand vous etes pret." centered />
 
-      <div className="mt-14 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-        <div className="flex items-center gap-4 border-b border-neutral-200 bg-[#FAFAF8] p-6">
-          <IconBadge icon={Bot} />
+      <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-[24px]" style={{ border: '1px solid rgba(255,255,255,0.07)', background: '#1C1C27', boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}>
+        {/* Header */}
+        <div className="flex items-center gap-3 p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#111118' }}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#C9A84C]/15 text-[#C9A84C]">
+            <Bot size={20} strokeWidth={1.75} />
+          </span>
           <div>
-            <h2 className="font-bold text-[#111111]">
-              Conseiller virtuel
-            </h2>
-            <p className="text-sm text-[#6B7280]">Orientation rapide</p>
+            <p className="font-semibold text-[#F0EDE8]">Assistant DS</p>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(46,204,113,0.6)]" />
+              <p className="text-xs text-[#6B6760]">En ligne</p>
+            </div>
           </div>
         </div>
 
-        <div className="max-h-[560px] min-h-96 space-y-5 overflow-y-auto bg-[#F5F5F3] p-5 sm:p-8">
-          {messages.map((message, index) => (
-            <div
-              key={`${message.role}-${index}`}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-6 sm:max-w-[72%] ${
-                  message.role === 'user'
-                    ? 'bg-[#1E5E52] text-white'
-                    : 'border border-neutral-200 bg-white text-[#111111] shadow-sm'
-                }`}
-              >
-                {message.content}
+        {/* Messages */}
+        <div className="flex h-[420px] flex-col gap-3 overflow-y-auto p-5" style={{ background: '#0A0A0F' }}>
+          {messages.map((msg, i) => (
+            <div key={i} className={"flex " + (msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+              <div className={"max-w-[80%] rounded-[18px] px-4 py-3 text-sm leading-6 " + (
+                msg.role === 'user'
+                  ? 'text-[#0A0A0F]'
+                  : 'text-[#A8A49E]'
+              )}
+              style={msg.role === 'user'
+                ? { background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', borderRadius: '18px 18px 4px 18px' }
+                : { background: '#1C1C27', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '18px 18px 18px 4px' }}>
+                {msg.content}
               </div>
             </div>
           ))}
-          {isLoading && (
-            <div className="text-sm font-medium text-[#6B7280]">
-              L’assistant prépare une réponse...
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-1.5 rounded-[18px] px-4 py-3" style={{ background: '#1C1C27', border: '1px solid rgba(255,255,255,0.07)' }}>
+                {[0,1,2].map((i) => (
+                  <span key={i} className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]"
+                    style={{ animation: 'float 1.2s ease-in-out ' + (i * 0.2) + 's infinite' }} />
+                ))}
+              </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-neutral-200 p-5 sm:p-6">
-          <div className="mb-4 flex flex-wrap gap-2">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-[#111111] transition duration-300 hover:border-[#1E5E52]/30 hover:bg-[#F5F5F3]"
-                onClick={() => void sendMessage(suggestion)}
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <input
-              value={inputValue}
-              onChange={(event) => setInputValue(event.target.value)}
-              className={`${inputClass} flex-1`}
-              placeholder="Écrivez votre question..."
-            />
-            <button
-              type="submit"
-              aria-label="Envoyer"
-              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1E5E52] text-white transition hover:bg-[#17483f]"
-            >
-              <Send size={20} />
+        {/* Suggestions */}
+        <div className="flex gap-2 overflow-x-auto px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          {suggestions.map((s) => (
+            <button key={s} type="button" onClick={() => void sendMessage(s)}
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-[#A8A49E] transition-all hover:text-[#C9A84C]"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {s}
             </button>
-          </form>
+          ))}
         </div>
+
+        {/* Input */}
+        <form onSubmit={handleSubmit} className="flex gap-3 p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: '#111118' }}>
+          <input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className="input-dark flex-1 rounded-full"
+            placeholder="Votre question..."
+          />
+          <button type="submit" disabled={!inputValue.trim()}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#C9A84C] text-[#0A0A0F] shadow-[0_4px_16px_rgba(201,168,76,0.35)] transition-all hover:bg-[#E2C47A] disabled:opacity-40">
+            <Send size={17} strokeWidth={2} />
+          </button>
+        </form>
       </div>
     </section>
   )
