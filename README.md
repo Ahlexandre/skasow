@@ -1,343 +1,439 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import Layout from './components/Layout'
-import ProtectedRoute from './components/ProtectedRoute'
-import { AuthProvider } from './contexts/AuthContext'
-import AdminDashboard from './pages/AdminDashboard'
-import Auth from './pages/Auth'
-import Chatbot from './pages/Chatbot'
-import Contact from './pages/Contact'
-import FAQ from './pages/FAQ'
-import Home from './pages/Home'
-import PreAnalysis from './pages/PreAnalysis'
-import ServiceDetail from './pages/ServiceDetail'
-import Services from './pages/Services'
-import UserDashboard from './pages/UserDashboard'
+# DS Conseil Immo
 
-function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="services" element={<Services />} />
-            <Route path="services/:slug" element={<ServiceDetail />} />
-            <Route path="pre-analysis" element={<PreAnalysis />} />
-            <Route path="pre-analyse-ia" element={<PreAnalysis />} />
-            <Route path="chatbot" element={<Chatbot />} />
-            <Route path="faq" element={<FAQ />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="auth" element={<Auth />} />
-            <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route
-              path="mon-espace"
-              element={
-                <ProtectedRoute>
-                  <UserDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/dashboard"
-              element={
-                <ProtectedRoute adminOnly>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  )
+Application web immobiliere pour DS Conseil : vitrine de services, pre-analyse de projet, espace utilisateur, tableau de bord administrateur et backend NestJS avec authentification JWT.
+
+## Lancer le projet
+
+### Prerequis
+
+- Node.js 20+
+- npm
+- Docker Desktop, pour PostgreSQL ou pour lancer tout le backend en conteneur
+
+Le projet est organise en deux parties :
+
+- Frontend React/Vite : racine `ds-conseil-immo`
+- Backend NestJS/Prisma : dossier `ds-conseil-immo/backend`
+
+### 1. Installer les dependances
+
+Depuis la racine du projet :
+
+```bash
+npm install
+```
+
+Puis pour le backend :
+
+```bash
+cd backend
+npm install
+```
+
+### 2. Configurer le backend
+
+Dans `backend`, creer le fichier `.env` depuis l'exemple :
+
+```bash
+cp .env.example .env
+```
+
+Valeurs de developpement attendues :
+
+```env
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/ds_conseil_immo?schema=public
+JWT_ACCESS_SECRET=change_me_access_secret_at_least_32_chars
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN_DAYS=30
+CORS_ORIGIN=http://localhost:5173
+RATE_LIMIT_TTL=60
+RATE_LIMIT_LIMIT=100
+```
+
+### 3. Demarrer PostgreSQL
+
+Option recommandee en local : lancer uniquement la base avec Docker Compose depuis `backend`.
+
+```bash
+cd backend
+docker compose up -d postgres
+```
+
+La base PostgreSQL sera disponible sur le port local `5433`.
+
+### 4. Initialiser Prisma
+
+Toujours dans `backend` :
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
+
+### 5. Demarrer le backend
+
+Dans `backend` :
+
+```bash
+npm run start:dev
+```
+
+Le backend ecoute sur :
+
+- API : `http://localhost:3000`
+- Swagger : `http://localhost:3000/docs`
+- Healthcheck : `http://localhost:3000/health`
+
+### 6. Demarrer le frontend
+
+Dans un autre terminal, depuis la racine `ds-conseil-immo` :
+
+```bash
+npm run dev
+```
+
+Le frontend ecoute sur :
+
+```text
+http://localhost:5173
+```
+
+Le fichier `vite.config.ts` proxy les routes API (`/auth`, `/analyses`, `/admin`, `/users`, `/chatbot`) vers `http://localhost:3000`. Il n'est donc pas obligatoire de definir `VITE_API_URL` en developpement.
+
+### Variante : backend complet avec Docker
+
+Depuis `backend` :
+
+```bash
+docker compose up --build
+```
+
+Cette commande lance PostgreSQL et l'API NestJS. Le conteneur API applique les migrations Prisma avant de demarrer Nest.
+
+### Commandes utiles
+
+Frontend :
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
+
+Backend :
+
+```bash
+npm run start:dev
+npm run build
+npm run start
+npm run lint
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:deploy
+```
+
+## Description du projet
+
+DS Conseil Immo est une application immobiliere orientee conseil. Elle permet a un visiteur de decouvrir les services, d'utiliser un assistant, de remplir une pre-analyse immobiliere, puis de retrouver ses demandes dans un espace personnel. Un administrateur peut ensuite consulter et piloter les analyses recues.
+
+## Fonctionnalites principales
+
+- Page d'accueil et presentation de l'agence
+- Catalogue de services immobiliers
+- Detail d'un service via une route dynamique
+- Formulaire de pre-analyse immobiliere
+- Scoring automatique du projet
+- Authentification inscription/connexion
+- Espace utilisateur protege
+- Tableau de bord administrateur protege par role `ADMIN`
+- Chatbot public avec reponses mockees
+- API documentee avec Swagger
+- Persistance PostgreSQL via Prisma
+
+## Parcours utilisateur
+
+1. Le visiteur arrive sur la page d'accueil.
+2. Il consulte les services ou lance une pre-analyse.
+3. Le formulaire collecte les informations du projet : type, ville, quartier, budget, surface, urgence, objectif, message et consentement.
+4. Si l'utilisateur n'est pas connecte, il est redirige vers l'inscription ou la connexion.
+5. Une fois connecte, l'analyse est creee via l'API.
+6. L'utilisateur retrouve ses analyses dans `Mon espace`.
+7. Un administrateur consulte les analyses, les filtres, repere les prospects prioritaires et peut modifier leur statut.
+
+## Routes frontend
+
+- `/` : accueil
+- `/services` : liste des services
+- `/services/:slug` : detail d'un service
+- `/pre-analysis` : pre-analyse immobiliere
+- `/pre-analyse-ia` : alias de la pre-analyse
+- `/chatbot` : assistant conversationnel
+- `/faq` : questions frequentes
+- `/contact` : contact
+- `/auth` : connexion et inscription
+- `/mon-espace` : espace utilisateur, protege
+- `/admin/dashboard` : tableau de bord admin, protege et reserve aux administrateurs
+
+## Architecture frontend
+
+Le frontend est construit avec React, TypeScript, Vite, Tailwind CSS v4 et React Router.
+
+Structure principale :
+
+- `src/App.tsx` : definition des routes
+- `src/pages` : pages applicatives
+- `src/components` : composants reutilisables
+- `src/contexts` : contexte d'authentification
+- `src/services` : appels API et logique metier cote client
+- `src/types` : types TypeScript partages cote frontend
+- `src/utils` : helpers locaux
+- `src/data` : donnees statiques de presentation
+- `src/assets` : ressources visuelles
+
+Services frontend importants :
+
+- `authService.ts` : inscription, connexion, deconnexion
+- `apiClient.ts` : client HTTP authentifie, injection du token JWT
+- `prospectService.ts` : creation et lecture des analyses
+- `analysisService.ts` : scoring local et recommandations
+- `chatbotService.ts` : reponse mockee du chatbot
+
+## Architecture backend
+
+Le backend est construit avec NestJS, TypeScript, Prisma et PostgreSQL.
+
+Modules principaux :
+
+- `auth` : inscription, connexion, refresh token, logout, utilisateur courant
+- `users` : profil utilisateur et suppression/anonymisation
+- `analyses` : creation et consultation des analyses utilisateur
+- `admin` : statistiques, filtres, detail et changement de statut
+- `chatbot` : endpoint public pour messages et suggestions
+- `health` : healthcheck
+- `prisma` : service Prisma partage
+- `common` : guards, decorators, types, pagination
+- `config` : validation des variables d'environnement
+
+## API backend
+
+Base URL locale :
+
+```text
+http://localhost:3000
+```
+
+Documentation Swagger :
+
+```text
+http://localhost:3000/docs
+```
+
+### Authentification
+
+- `POST /auth/register` : creer un compte utilisateur
+- `POST /auth/login` : se connecter
+- `POST /auth/refresh` : renouveler les tokens
+- `POST /auth/logout` : revoquer un refresh token
+- `GET /auth/me` : recuperer l'utilisateur courant
+
+L'inscription publique cree toujours un compte `USER`. Les comptes `ADMIN` doivent etre promus directement en base ou via une procedure interne.
+
+### Utilisateurs
+
+Routes protegees par JWT :
+
+- `GET /users/me`
+- `PATCH /users/me`
+- `DELETE /users/me`
+
+La suppression anonymise les donnees personnelles et revoque les refresh tokens actifs.
+
+### Analyses
+
+Routes protegees par JWT :
+
+- `POST /analyses`
+- `GET /analyses/my`
+- `GET /analyses/:id`
+
+Payload type :
+
+```json
+{
+  "projectType": "BUY",
+  "city": "Bamako",
+  "district": "ACI 2000",
+  "budget": 35000000,
+  "propertyType": "Villa",
+  "surface": 120,
+  "urgency": "HIGH",
+  "objective": "Residence principale",
+  "message": "Recherche rapide",
+  "consentAccepted": true
 }
+```
 
-export default App
+### Administration
 
-CSS : 
-@import "tailwindcss";
+Routes protegees par JWT et role `ADMIN` :
 
-/* ═══════════════════════════════════════════════════════════════════
-   DS CONSEIL — DESIGN SYSTEM
-   Tailwind v4 : on utilise @layer base et @layer components
-   Polices chargees dans index.html
-═══════════════════════════════════════════════════════════════════ */
+- `GET /admin/dashboard/stats`
+- `GET /admin/analyses`
+- `GET /admin/analyses/:id`
+- `PATCH /admin/analyses/:id/status`
+- `GET /admin/analyses/top`
+- `GET /admin/analyses/by-service`
 
-/* ── 1. Variables CSS globales ── */
-:root {
-  --bg:         #09090E;
-  --bg-2:       #0F0F16;
-  --bg-3:       #14141C;
-  --surface:    #1A1A24;
-  --surface-2:  #20202C;
-  --border:     rgba(255,255,255,0.06);
-  --border-2:   rgba(255,255,255,0.10);
+Filtres disponibles sur `GET /admin/analyses` :
 
-  --gold:       #C9A84C;
-  --gold-light: #DDB96A;
+- `projectType`
+- `maturityLevel`
+- `commercialPriority`
+- `status`
+- `minScore`
+- `search`
+- `sortBy`
+- `sortOrder`
+- `page`
+- `limit`
 
-  --text:       #EDEAE4;
-  --text-2:     #9E9A94;
-  --text-3:     #5E5B56;
+### Chatbot
 
-  --sh-gold:    0 4px 24px rgba(201,168,76,0.22);
-  --r-md:       14px;
-  --r-lg:       20px;
-  --r-full:     9999px;
-}
+Routes publiques :
 
-/* ── 2. Reset & base ── */
-@layer base {
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+- `POST /chatbot/message`
+- `GET /chatbot/suggestions`
 
-  html {
-    scroll-behavior: smooth;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-size: 16px;
-    line-height: 1.65;
-    letter-spacing: -0.01em;
-    color: #EDEAE4;
-    background: #09090E;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
+Les reponses sont actuellement mockees. Le module est isole pour permettre l'ajout futur d'un fournisseur IA.
 
-  body {
-    min-width: 320px;
-    overflow-x: hidden;
-    background: #09090E;
-  }
+## Base de donnees
 
-  button, input, select, textarea { font: inherit; }
-  a { color: inherit; text-decoration: none; }
-  img, video { display: block; max-width: 100%; }
+La base utilise PostgreSQL et Prisma.
 
-  ::selection { background: #C9A84C; color: #09090E; }
+Modeles principaux :
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #20202C; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #C9A84C; }
-}
+- `User` : compte, role, informations de profil
+- `RefreshToken` : refresh tokens hashes, expirables et revocables
+- `Analysis` : analyse immobiliere et scoring commercial
+- `AuditLog` : journalisation des actions sensibles
 
-/* ── 3. Keyframes ── */
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes slide-down {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
-}
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.35); }
-  60%       { box-shadow: 0 0 0 10px rgba(201,168,76,0); }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-33.333%); }
-}
+Enums principaux :
 
-/* ── 4. Composants ── */
-@layer components {
+- `Role` : `USER`, `ADMIN`
+- `ProjectType` : `BUY`, `RENT`, `SELL`, `INVEST`
+- `Urgency` : `LOW`, `MEDIUM`, `HIGH`
+- `MaturityLevel` : `LOW`, `MEDIUM`, `HIGH`
+- `CommercialPriority` : `LOW`, `MEDIUM`, `HIGH`
+- `AnalysisStatus` : `SENT`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`
 
-  /* Typographie Playfair Display */
-  .title-display {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-weight: 600;
-    line-height: 1.18;
-    letter-spacing: -0.01em;
-  }
-  .title-sm  { font-size: 1.5rem; }
-  .title-md  { font-size: 2rem; }
-  .title-lg  { font-size: 2.5rem; }
-  .title-xl  { font-size: 3rem; }
-  .title-2xl { font-size: 3.75rem; }
-  .title-3xl { font-size: 4.5rem; }
+## Scoring des analyses
 
-  @media (max-width: 768px) {
-    .title-xl  { font-size: 2.25rem; }
-    .title-2xl { font-size: 2.75rem; }
-    .title-3xl { font-size: 2.75rem; }
-  }
+Le backend calcule un score commercial a partir des informations du projet.
 
-  /* Gradient or */
-  .text-gold-gradient {
-    background: linear-gradient(135deg, #C9A84C 0%, #DDB96A 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+Regles principales :
 
-  /* Label editorial */
-  .label-mono {
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #5E5B56;
-  }
+- Budget renseigne : `+20`
+- Telephone renseigne sur le profil utilisateur : `+15`
+- Email renseigne : `+10`
+- Urgence `HIGH` : `+20`
+- Projet `BUY` ou `INVEST` : `+15`
+- Ville ou quartier renseigne : `+10`
+- Surface ou type de bien renseigne : `+10`
 
-  /* Fond ambiant */
-  .bg-app {
-    background-color: #09090E;
-    background-image:
-      radial-gradient(ellipse 70% 40% at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 35% at 90% 85%, rgba(201,168,76,0.04) 0%, transparent 55%);
-  }
+Seuils :
 
-  /* Glassmorphism */
-  .glass {
-    background: rgba(26,26,36,0.80);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(255,255,255,0.06);
-  }
+- `score >= 75` : maturite `HIGH`, priorite `HIGH`
+- `45 <= score <= 74` : maturite `MEDIUM`, priorite `MEDIUM`
+- `score < 45` : maturite `LOW`, priorite `LOW`
 
-  /* Badge or */
-  .badge-gold {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 14px;
-    border-radius: 9999px;
-    background: rgba(201,168,76,0.10);
-    border: 1px solid rgba(201,168,76,0.25);
-    color: #DDB96A;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
+## Securite
 
-  /* Input dark */
-  .input-dark {
-    background: #0F0F16;
-    border: 1px solid rgba(255,255,255,0.10);
-    color: #EDEAE4;
-    border-radius: 14px;
-    padding: 11px 16px;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    width: 100%;
-    min-height: 46px;
-  }
-  .input-dark::placeholder { color: #5E5B56; }
-  .input-dark:focus {
-    border-color: #C9A84C;
-    box-shadow: 0 0 0 3px rgba(201,168,76,0.14);
-  }
-  .input-dark:disabled { opacity: 0.4; cursor: not-allowed; }
+- Validation globale des DTO avec whitelist
+- Rejet des proprietes non autorisees
+- Helmet active
+- CORS configurable via `CORS_ORIGIN`
+- Rate limiting global
+- Mots de passe hashes avec bcrypt
+- Access tokens JWT
+- Refresh tokens hashes en base
+- Revocation des refresh tokens
+- Guards JWT et roles admin
+- Controle d'acces objet sur les analyses
+- Consentement obligatoire avant creation d'une analyse
+- Anonymisation lors de la suppression de compte
 
-  /* Bento cells */
-  .bento-cell {
-    background: #0F0F16;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 20px;
-    transition: border-color 0.25s, background 0.25s, transform 0.25s;
-  }
-  .bento-cell:hover {
-    border-color: rgba(201,168,76,0.22);
-    background: #14141C;
-    transform: translateY(-2px);
-  }
+## Configuration frontend/backend
 
-  /* Marquee */
-  .marquee-track {
-    display: flex;
-    gap: 3rem;
-    white-space: nowrap;
-    animation: marquee 22s linear infinite;
-  }
+En developpement, le frontend peut appeler l'API de deux manieres :
 
-  /* Progress bar */
-  .progress-gold {
-    background: linear-gradient(90deg, #C9A84C, #DDB96A);
-    transition: width 0.6s;
-  }
+1. Via le proxy Vite configure dans `vite.config.ts`
+2. Via une variable `VITE_API_URL`
 
-  /* Chatbot */
-  .chatbot-trigger { animation: pulse-gold 3s ease-out infinite; }
+Exemple si vous ne voulez pas utiliser le proxy :
 
-  /* Tabs */
-  .tabs-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-  .tabs-scroll::-webkit-scrollbar { display: none; }
+```env
+VITE_API_URL=http://localhost:3000
+```
 
-  /* Animations */
-  .anim-fade-up    { animation: fade-up    0.55s ease-out both; }
-  .anim-fade-in    { animation: fade-in    0.4s  ease-out both; }
-  .anim-scale-in   { animation: scale-in   0.4s  ease-out both; }
-  .anim-slide-down { animation: slide-down 0.3s  ease-out both; }
-  .anim-float      { animation: float 4s ease-in-out infinite; }
-  .delay-100 { animation-delay: 0.10s; }
-  .delay-200 { animation-delay: 0.20s; }
-  .delay-300 { animation-delay: 0.30s; }
+Dans ce cas, creer un fichier `.env` a la racine du frontend et redemarrer Vite.
 
-  /* Divider */
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
-  }
+## Depannage
 
-  /* Score ring */
-  .score-ring { transition: stroke-dasharray 0.7s; }
+### Message `Requete impossible` a l'inscription
 
-  /* Step connector */
-  .step-connector { position: relative; }
-  .step-connector:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 19px; top: 48px; bottom: -20px;
-    width: 1px;
-    background: linear-gradient(180deg, rgba(201,168,76,0.3), transparent);
-  }
+Verifier que :
 
-  /* Table dark */
-  .table-dark th {
-    background: #0F0F16;
-    color: #5E5B56;
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    padding: 13px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .table-dark td {
-    padding: 13px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    color: #9E9A94;
-    font-size: 0.875rem;
-    line-height: 1.55;
-  }
-  .table-dark tr:hover td { background: #1A1A24; }
-  .table-dark tr.selected td { background: rgba(201,168,76,0.05); }
-}
+- Le backend tourne sur `http://localhost:3000`
+- Le frontend a bien ete redemarre apres modification de `vite.config.ts`
+- Le proxy Vite contient bien `/auth`
+- Le mot de passe contient au moins 8 caracteres
+- L'email n'existe pas deja en base
 
-main : 
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+### Erreur de connexion PostgreSQL
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+Verifier que le conteneur PostgreSQL est lance :
 
+```bash
+docker compose ps
+```
+
+Verifier aussi que `DATABASE_URL` pointe bien vers `localhost:5433` en local.
+
+### Erreur CORS
+
+Verifier la variable backend :
+
+```env
+CORS_ORIGIN=http://localhost:5173
+```
+
+Si le frontend tourne sur un autre port, ajouter cette origine dans `CORS_ORIGIN`.
+
+### Swagger inaccessible
+
+Verifier que l'API NestJS est lancee :
+
+```bash
+curl http://localhost:3000/health
+```
+
+## Build production
+
+Frontend :
+
+```bash
+npm run build
+```
+
+Backend :
+
+```bash
+cd backend
+npm run build
+npm run start
+```
+
+En production, definir des secrets JWT robustes, une URL PostgreSQL de production, les bonnes origines CORS et servir le frontend compile depuis `dist`.
