@@ -1,49 +1,47 @@
-import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
-import { SectionHeader, narrowShell } from '../components/ui'
 import { faqItems } from '../data/faq'
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(0)
 
   return (
-    <section className={narrowShell}>
-      <SectionHeader
-        eyebrow="FAQ"
-        title="Questions fréquentes"
-        description="Les réponses clés pour rassurer les visiteurs avant une demande de contact ou une pré-analyse."
-        centered
-      />
+    <div className="px-6 py-20 lg:px-16 lg:py-28">
+      <div className="mb-16 border-b border-white/5 pb-12">
+        <span className="label-mono">Questions frequentes</span>
+        <h1 className="title-display title-2xl mt-5 text-[#EDEAE4]">FAQ</h1>
+        <p className="mt-5 max-w-lg text-base leading-8 text-[#9E9A94]">
+          Les reponses cles pour avancer sereinement avant une demande de contact ou une pre-analyse.
+        </p>
+      </div>
 
-      <div className="mt-14 space-y-4">
-        {faqItems.map((item, index) => {
-          const isOpen = openIndex === index
-
+      <div className="mx-auto max-w-3xl flex flex-col">
+        {faqItems.map((item, i) => {
+          const isOpen = openIndex === i
           return (
-            <article
-              key={item.question}
-              className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm"
-            >
-              <button
-                type="button"
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left font-semibold text-[#111111] transition hover:bg-[#F5F5F3] focus:outline-none focus:ring-4 focus:ring-[#1E5E52]/10"
-                onClick={() => setOpenIndex(isOpen ? -1 : index)}
-              >
-                {item.question}
-                <ChevronDown
-                  size={20}
-                  className={`shrink-0 text-[#6B7280] transition ${isOpen ? 'rotate-180' : ''}`}
-                />
+            <div key={i}
+              className={'border-b transition-colors duration-200 ' + (isOpen ? 'border-[#C9A84C]/15' : 'border-white/5')}>
+              <button type="button"
+                className="flex w-full items-start justify-between gap-8 py-7 text-left focus:outline-none"
+                onClick={() => setOpenIndex(isOpen ? null : i)}>
+                <div className="flex items-start gap-6">
+                  <span className="label-mono w-6 shrink-0 pt-1">0{i + 1}</span>
+                  <span className={'text-base font-medium leading-7 transition-colors ' + (isOpen ? 'text-[#C9A84C]' : 'text-[#EDEAE4]')}>
+                    {item.question}
+                  </span>
+                </div>
+                <span className={'shrink-0 text-xl leading-none transition-all duration-300 ' + (isOpen ? 'rotate-45 text-[#C9A84C]' : 'text-[#5E5B56]')}>
+                  +
+                </span>
               </button>
               {isOpen && (
-                <p className="border-t border-neutral-200 px-6 py-5 text-sm leading-7 text-[#6B7280]">
-                  {item.answer}
-                </p>
+                <div className="anim-slide-down pb-7 pl-12">
+                  <p className="text-sm leading-8 text-[#9E9A94]">{item.answer}</p>
+                </div>
               )}
-            </article>
+            </div>
           )
         })}
       </div>
-    </section>
+    </div>
   )
 }
