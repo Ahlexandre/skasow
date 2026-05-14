@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProjectType {
+  BUY
+  RENT
+  SELL
+  INVEST
+}
+
+enum MaturityLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CommercialPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AnalysisStatus {
+  SENT
+  IN_PROGRESS
+  PRIORITY
+  INCOMPLETE
+  PROCESSED
+  TO_RECONTACT
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id            String         @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  phone         String?
+  passwordHash  String
+  role          Role           @default(USER)
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  analyses      Analysis[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Analysis {
+  id                 String             @id @default(uuid())
+  userId             String
+  projectType        ProjectType
+  city               String
+  district           String?
+  budget             Decimal?           @db.Decimal(14, 2)
+  propertyType       String?
+  surface            Float?
+  urgency            Urgency
+  objective          String?
+  message            String?
+  consentAccepted    Boolean
+  score              Int
+  maturityLevel      MaturityLevel
+  commercialPriority CommercialPriority
+  profileType        String
+  recommendedService String
+  strengths          String[]
+  missingInfo        String[]
+  recommendations    String[]
+  nextAction         String
+  status             AnalysisStatus     @default(SENT)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectType])
+  @@index([maturityLevel])
+  @@index([commercialPriority])
+  @@index([status])
+  @@index([score])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
