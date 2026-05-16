@@ -5,16 +5,28 @@ export type ChatMessage = {
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
-type ChatbotResponse = {
+export type ChatbotResponse = {
   reply: string
   intent?: string
+  confidence?: number
+  suggestions?: string[]
 }
 
-export async function requestChatbotReply(message: string): Promise<string> {
+export function buildChatContext(messages: ChatMessage[]) {
+  return messages
+    .slice(-8)
+    .map((message) => `${message.role}: ${message.content}`)
+    .join('\n')
+}
+
+export async function requestChatbotResponse(
+  message: string,
+  context?: string,
+): Promise<ChatbotResponse> {
   const response = await fetch(`${API_URL}/chatbot/message`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, context }),
   })
 
   if (!response.ok) {
@@ -26,6 +38,13 @@ export async function requestChatbotReply(message: string): Promise<string> {
     throw new Error(detail ?? 'Réponse chatbot impossible.')
   }
 
-  const payload = (await response.json()) as ChatbotResponse
+  return response.json() as Promise<ChatbotResponse>
+}
+
+export async function requestChatbotReply(
+  message: string,
+  context?: string,
+): Promise<string> {
+  const payload = await requestChatbotResponse(message, context)
   return payload.reply
 }

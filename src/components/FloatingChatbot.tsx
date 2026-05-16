@@ -1,16 +1,25 @@
-import { Bot, MessageCircle, Minus, Send, X } from 'lucide-react'
+import { Bot, Maximize2, MessageCircle, Mic, MicOff, Minimize2, Minus, Send, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { requestChatbotReply, type ChatMessage } from '../services/chatbotService'
+import {
+  buildChatContext,
+  requestChatbotResponse,
+  type ChatMessage,
+} from '../services/chatbotService'
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 
-const suggestions = ['Je veux acheter','Pre-analyse','Documents','Contact']
+const initialSuggestions = ['Acheter', 'Documents', 'Estimation', 'Investir', 'Contact']
 
 export default function FloatingChatbot() {
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [suggestions, setSuggestions] = useState(initialSuggestions)
+  const [lastIntent, setLastIntent] = useState<string | null>(null)
+  const speech = useSpeechRecognition()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: "Bonjour ! Je suis l'assistant DS Conseil. Comment puis-je vous aider ?" },
@@ -30,21 +39,55 @@ export default function FloatingChatbot() {
     setMessages((c) => [...c, { role: 'user', content: trimmed }])
     setInputValue('')
     setIsTyping(true)
-    const reply = await requestChatbotReply(trimmed)
-    setIsTyping(false)
-    setMessages((c) => [...c, { role: 'assistant', content: reply }])
+    try {
+      const response = await requestChatbotResponse(trimmed, buildChatContext(messages))
+      setMessages((c) => [...c, { role: 'assistant', content: response.reply }])
+      setLastIntent(response.intent ?? null)
+      if (response.suggestions?.length) setSuggestions(response.suggestions)
+    } catch {
+      setMessages((c) => [
+        ...c,
+        {
+          role: 'assistant',
+          content: 'Le service chatbot est momentanement indisponible.',
+        },
+      ])
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); void sendMessage(inputValue) }
 
-  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')?.content.toLowerCase()
-  const showAnalysisLink = lastUserMsg?.includes('analyse')
-  const showContactLink  = lastUserMsg?.includes('contact')
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      void sendMessage(inputValue)
+    }
+  }
+
+  const toggleVoiceInput = () => {
+    if (speech.isListening) {
+      speech.stop()
+      return
+    }
+
+    speech.start((transcript) => setInputValue(transcript))
+  }
+
+  const showAnalysisLink = Boolean(lastIntent && lastIntent !== 'CONTACT')
+  const showContactLink = lastIntent === 'CONTACT' || lastIntent === 'GENERAL'
+  const panelSizeClass = isExpanded
+    ? 'w-full sm:w-[42rem] sm:max-w-[calc(100vw-3rem)]'
+    : 'w-full max-w-[22rem]'
+  const messagesSizeClass = isExpanded
+    ? 'h-[52vh] min-h-[20rem] max-h-[32rem]'
+    : 'max-h-[20rem]'
 
   return (
     <div className="fixed inset-x-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:inset-x-auto sm:bottom-6 sm:right-6">
       {isOpen && !isMinimized && (
-        <div className="anim-scale-in w-full max-w-[22rem] overflow-hidden rounded-[24px]"
+        <div className={`anim-scale-in max-h-[calc(100vh-6rem)] overflow-hidden rounded-[24px] ${panelSizeClass}`}
           style={{ background: 'rgba(17,17,24,0.97)', backdropFilter: 'blur(24px)', border: '1px solid rgba(201,168,76,0.15)', boxShadow: '0 24px 64px rgba(0,0,0,0.6), 0 0 40px rgba(201,168,76,0.06)' }}>
 
           {/* Header */}
@@ -62,6 +105,11 @@ export default function FloatingChatbot() {
               </div>
             </div>
             <div className="flex gap-1">
+              <button type="button" aria-label={isExpanded ? 'Reduire la fenetre' : 'Agrandir la fenetre'}
+                className="rounded-full p-2 text-[#6B6760] transition hover:bg-white/5 hover:text-[#F0EDE8]"
+                onClick={() => setIsExpanded((current) => !current)}>
+                {isExpanded ? <Minimize2 size={15} strokeWidth={2} /> : <Maximize2 size={15} strokeWidth={2} />}
+              </button>
               <button type="button" aria-label="Reduire"
                 className="rounded-full p-2 text-[#6B6760] transition hover:bg-white/5 hover:text-[#F0EDE8]"
                 onClick={() => setIsMinimized(true)}>
@@ -76,10 +124,10 @@ export default function FloatingChatbot() {
           </div>
 
           {/* Messages */}
-          <div className="max-h-[20rem] flex flex-col gap-3 overflow-y-auto p-4" style={{ background: '#0A0A0F' }}>
+          <div className={`flex flex-col gap-3 overflow-y-auto p-4 ${messagesSizeClass}`} style={{ background: '#0A0A0F' }}>
             {messages.map((msg, i) => (
               <div key={i} className={"flex " + (msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-                <div className={"max-w-[85%] rounded-[16px] px-4 py-3 text-sm leading-6 " + (
+                <div className={"max-w-[90%] whitespace-pre-line break-words rounded-[16px] px-4 py-3 text-sm leading-6 [overflow-wrap:anywhere] sm:max-w-[85%] " + (
                   msg.role === 'user' ? 'text-[#0A0A0F]' : 'text-[#A8A49E]'
                 )}
                 style={msg.role === 'user'
@@ -123,8 +171,8 @@ export default function FloatingChatbot() {
           {/* Suggestions */}
           <div className="flex gap-1.5 overflow-x-auto px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {suggestions.map((s) => (
-              <button key={s} type="button" onClick={() => void sendMessage(s)}
-                className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[#6B6760] transition hover:text-[#C9A84C]"
+              <button key={s} type="button" onClick={() => void sendMessage(s)} disabled={isTyping}
+                className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[#6B6760] transition hover:text-[#C9A84C] disabled:opacity-40"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 {s}
               </button>
@@ -132,11 +180,28 @@ export default function FloatingChatbot() {
           </div>
 
           {/* Input */}
-          <form onSubmit={handleSubmit} className="flex gap-2 p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <input value={inputValue} onChange={(e) => setInputValue(e.target.value)}
-              className="input-dark flex-1 rounded-full py-2 text-sm"
+          <form onSubmit={handleSubmit} className="flex items-end gap-2 p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              rows={isExpanded ? 2 : 1}
+              className="input-dark max-h-28 min-h-10 flex-1 resize-y rounded-[16px] py-2 text-sm leading-6 [overflow-wrap:anywhere]"
               placeholder="Votre question..." />
-            <button type="submit" disabled={!inputValue.trim()}
+            <button
+              type="button"
+              aria-label={speech.isListening ? 'Arreter le micro' : 'Parler au chatbot'}
+              title={speech.error || (speech.isSupported ? 'Parler au chatbot' : 'Reconnaissance vocale indisponible')}
+              disabled={!speech.isSupported || isTyping}
+              onClick={toggleVoiceInput}
+              className={
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition disabled:opacity-40 ' +
+                (speech.isListening
+                  ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                  : 'border-white/10 bg-white/[0.04] text-[#6B6760] hover:border-[#C9A84C]/35 hover:text-[#C9A84C]')
+              }
+            >
+              {speech.isListening ? <MicOff size={15} strokeWidth={2} /> : <Mic size={15} strokeWidth={2} />}
+            </button>
+            <button type="submit" disabled={!inputValue.trim() || isTyping}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#C9A84C] text-[#0A0A0F] transition hover:bg-[#E2C47A] disabled:opacity-40">
               <Send size={15} strokeWidth={2} />
             </button>

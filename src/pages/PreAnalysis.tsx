@@ -120,7 +120,7 @@ export default function PreAnalysis() {
     <div className="px-6 py-16 lg:px-16 lg:py-24">
       {/* En-tete */}
       <div className="mb-12 border-b border-white/5 pb-10">
-        <span className="text-[11px] font-mono tracking-[0.2em] text-[#6B6760] uppercase">003 — Analyse IA</span>
+        <span className="text-[11px] font-mono tracking-[0.2em] text-[#6B6760] uppercase">003 — Analyse Dossier</span>
         <h1 className="mt-4 font-display text-4xl tracking-[-0.04em] text-[#F0EDE8] lg:text-5xl">
           Votre diagnostic<br />immobilier
         </h1>

@@ -15,7 +15,7 @@ export default function Footer() {
           <span className="label-mono">Bamako, Mali</span>
         </div>
         <div className="flex flex-wrap items-center gap-6">
-          {[['Accueil', '/'], ['Acheter', '/#acheter'], ['Vendre', '/#vendre'], ['Louer', '/#louer'], ['Investir', '/#investir'], ['Analyse IA', '/pre-analysis'], ['FAQ', '/faq'], ['Contact', '/contact'], ['Politique de confidentialite', '/privacy']].map(([l, t]) => (
+          {[['Accueil', '/'], ['Acheter', '/#acheter'], ['Vendre', '/#vendre'], ['Louer', '/#louer'], ['Investir', '/#investir'], ['Analyse Dossier', '/pre-analysis'], ['FAQ', '/faq'], ['Contact', '/contact'], ['Politique de confidentialite', '/privacy']].map(([l, t]) => (
             <Link key={t} to={t} className="label-mono transition-colors hover:text-[#C9A84C]">{l}</Link>
           ))}
           <span className="label-mono">&copy; {new Date().getFullYear()}</span>

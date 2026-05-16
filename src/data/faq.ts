@@ -10,7 +10,7 @@ export const faqItems: FaqItem[] = [
       'L’équipe clarifie votre budget, votre localisation cible, le type de bien recherché et les documents à vérifier avant toute décision.',
   },
   {
-    question: 'Puis-je utiliser la pré-analyse IA sans créer de compte ?',
+    question: 'Puis-je utiliser la pré-analyse dossier sans créer de compte ?',
     answer:
       'Oui. Les visiteurs peuvent utiliser la pré-analyse et le chatbot librement. La connexion sert uniquement à l’espace administrateur.',
   },
