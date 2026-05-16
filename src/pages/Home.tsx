@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import HomeServicesSection from '../components/HomeServicesSection'
+import ReviewsSection from '../components/ReviewsSection'
 import { primaryButton } from '../components/ui'
 
 const marqueeItems = [
@@ -100,7 +101,7 @@ export default function Home() {
       <HomeServicesSection />
 
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-          ANALYSE IA
+          ANALYSE DOSSIER
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
@@ -226,6 +227,8 @@ export default function Home() {
           <span className="label-mono">2025</span>
         </div>
       </section>
+
+      <ReviewsSection maxReviews={5} showAllLink />
 
     </div>
   )

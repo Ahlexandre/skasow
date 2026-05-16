@@ -9,6 +9,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AnalysesModule,
     AdminModule,
+    ReviewsModule,
     ChatbotModule,
     HealthModule,
   ],

@@ -38,7 +38,8 @@ export const publicNavLinks = [
 ] as const
 
 export const secondaryNavLinks = [
-  { label: 'Analyse IA', to: '/pre-analysis' },
+  { label: 'Analyse Dossier', to: '/pre-analysis' },
+  { label: 'Avis', to: '/avis' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Contact', to: '/contact' },
 ] as const

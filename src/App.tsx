@@ -11,6 +11,7 @@ import FAQ from './pages/FAQ'
 import Privacy from './pages/Privacy'
 import Home from './pages/Home'
 import PreAnalysis from './pages/PreAnalysis'
+import Reviews from './pages/Reviews'
 import ServiceDetail from './pages/ServiceDetail'
 import AdminHistory from './pages/AdminHistory'
 import MyData from './pages/MyData'
@@ -31,6 +32,7 @@ function App() {
             <Route path="faq" element={<FAQ />} />
             <Route path="contact" element={<Contact />} />
             <Route path="privacy" element={<Privacy />} />
+            <Route path="avis" element={<Reviews />} />
             <Route path="auth" element={<Auth />} />
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
