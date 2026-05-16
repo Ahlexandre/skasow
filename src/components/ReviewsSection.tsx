@@ -204,7 +204,6 @@ export default function ReviewsSection({ maxReviews, showAllLink = false }: Revi
             <span className="text-gold-gradient">pensent de nous</span>
           </h2>
           <p className="mt-5 text-base leading-8 text-[#9E9A94]">
-            Les avis publics affiches ici sont uniquement les notes 4 et 5 etoiles.
           </p>
         </div>
 

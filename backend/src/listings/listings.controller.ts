@@ -25,6 +25,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CreateListingApplicationDto } from './dto/create-listing-application.dto';
 import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingApplicationDto } from './dto/update-listing-application.dto';
 import { UpdateListingApplicationStatusDto } from './dto/update-listing-application-status.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { ListingsService } from './listings.service';
@@ -154,6 +155,17 @@ export class ListingsController {
   @UseGuards(JwtAuthGuard)
   findMyApplications(@CurrentUser() user: AuthenticatedUser) {
     return this.listingsService.findMyApplications(user.id);
+  }
+
+  @Patch('me/applications/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  updateMyApplication(
+    @Param('id') id: string,
+    @Body() dto: UpdateListingApplicationDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.listingsService.updateMyApplication(id, user.id, dto);
   }
 
   @Post(':id/applications')

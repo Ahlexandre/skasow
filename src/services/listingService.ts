@@ -54,6 +54,16 @@ export async function fetchMyListingApplications(): Promise<ListingApplication[]
   return apiRequest<ListingApplication[]>('/listings/me/applications')
 }
 
+export async function updateMyListingApplication(
+  id: string,
+  input: ListingApplicationInput,
+): Promise<ListingApplication> {
+  return apiRequest<ListingApplication>(`/listings/me/applications/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(cleanApplicationInput(input)),
+  })
+}
+
 export async function fetchAdminListings(): Promise<Listing[]> {
   return apiRequest<Listing[]>('/listings/admin/all')
 }

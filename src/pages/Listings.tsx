@@ -12,8 +12,9 @@ import {
   fetchListings,
   fetchMyListingApplications,
   resolveListingImageUrl,
+  updateMyListingApplication,
 } from '../services/listingService'
-import type { Listing, ListingApplicationInput } from '../types/listing'
+import type { Listing, ListingApplication, ListingApplicationInput } from '../types/listing'
 import { Badge, Button, EmptyState, Select, Textarea, labelClass, pageShell } from '../components/ui'
 
 const MARITAL_API_MAP: Record<string, string> = {
@@ -34,11 +35,16 @@ const emptyApplication: ListingApplicationInput = {
   message: '',
 }
 
+const API_MARITAL_LABEL_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(MARITAL_API_MAP).map(([label, apiValue]) => [apiValue, label]),
+)
+
 export default function Listings() {
   const { currentUser } = useAuth()
   const [listings, setListings] = useState<Listing[]>([])
   const [activeListingId, setActiveListingId] = useState<string | null>(null)
   const [form, setForm] = useState<ListingApplicationInput>(emptyApplication)
+  const [myApplications, setMyApplications] = useState<ListingApplication[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
@@ -50,6 +56,7 @@ export default function Listings() {
       if (!currentUser) return items
 
       const applications = await fetchMyListingApplications().catch(() => [])
+      setMyApplications(applications)
       const applicationsByListingId = new Map(
         applications.map((application) => [application.listingId, application]),
       )
@@ -82,6 +89,22 @@ export default function Listings() {
     () => listings.find((listing) => listing.id === activeListingId) ?? null,
     [activeListingId, listings],
   )
+  const activeApplication = useMemo(
+    () =>
+      activeListing
+        ? myApplications.find((application) => application.listingId === activeListing.id) ?? null
+        : null,
+    [activeListing, myApplications],
+  )
+
+  const openListingPanel = (listing: Listing) => {
+    setActiveListingId(listing.id)
+    setError('')
+    setMessage('')
+
+    const application = myApplications.find((item) => item.listingId === listing.id)
+    setForm(application ? applicationToForm(application) : emptyApplication)
+  }
 
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -95,16 +118,27 @@ export default function Listings() {
     setError('')
     setMessage('')
     try {
-      const application = await applyToListing(activeListing.id, {
+      const payload = {
         ...form,
         maritalStatus: form.maritalStatus ? MARITAL_API_MAP[form.maritalStatus] : undefined,
+      }
+      const application = activeApplication
+        ? await updateMyListingApplication(activeApplication.id, payload)
+        : await applyToListing(activeListing.id, payload)
+      setMyApplications((current) => {
+        const exists = current.some((item) => item.id === application.id)
+        return exists
+          ? current.map((item) => (item.id === application.id ? { ...item, ...application } : item))
+          : [application, ...current]
       })
       setListings((current) =>
         current.map((listing) =>
           listing.id === activeListing.id
             ? {
                 ...listing,
-                applicationsCount: listing.applicationsCount + 1,
+                applicationsCount: activeApplication
+                  ? listing.applicationsCount
+                  : listing.applicationsCount + 1,
                 myApplication: {
                   id: application.id,
                   status: application.status,
@@ -114,9 +148,8 @@ export default function Listings() {
             : listing,
         ),
       )
-      setActiveListingId(null)
-      setForm(emptyApplication)
-      setMessage('Votre candidature a ete transmise a DS Conseil.')
+      setForm(applicationToForm(application))
+      setMessage(activeApplication ? 'Votre candidature a ete modifiee.' : 'Votre candidature a ete transmise a DS Conseil.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Candidature impossible.')
     } finally {
@@ -155,9 +188,7 @@ export default function Listings() {
                 listing={listing}
                 active={listing.id === activeListingId}
                 onApply={() => {
-                  setActiveListingId(listing.id)
-                  setError('')
-                  setMessage('')
+                  openListingPanel(listing)
                 }}
               />
             ))}
@@ -166,19 +197,23 @@ export default function Listings() {
           <aside className="h-fit rounded-[18px] border border-white/6 bg-[#111118] p-6 xl:sticky xl:top-32">
             {activeListing ? (
               currentUser ? (
-                activeListing.myApplication ? (
-                  <div>
-                    <p className="text-base font-semibold text-[#EDEAE4]">Candidature deja envoyee</p>
-                    <p className="mt-2 text-sm leading-7 text-[#9E9A94]">
-                      DS Conseil a deja recu votre interet pour cette annonce.
-                    </p>
-                    <Badge tone="gold" className="mt-4">{activeListing.myApplication.status}</Badge>
-                  </div>
-                ) : (
+                (
                   <form onSubmit={(event) => void submitApplication(event)} className="flex flex-col gap-5">
                     <div>
-                      <p className="text-base font-semibold text-[#EDEAE4]">Postuler</p>
-                      <p className="mt-1 text-sm text-[#5E5B56]">{activeListing.title}</p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-[#EDEAE4]">
+                            {activeApplication ? 'Modifier ma candidature' : 'Postuler'}
+                          </p>
+                          <p className="mt-1 text-sm text-[#5E5B56]">{activeListing.title}</p>
+                        </div>
+                        {activeApplication ? <Badge tone="gold">{activeApplication.status}</Badge> : null}
+                      </div>
+                      {activeApplication ? (
+                        <p className="mt-4 rounded-[12px] border border-white/8 bg-white/[0.02] p-3 text-xs leading-6 text-[#9E9A94]">
+                          Candidature envoyee le {new Date(activeApplication.createdAt).toLocaleDateString('fr-FR')}. Vous pouvez modifier vos informations tant que le dossier n'est pas reserve.
+                        </p>
+                      ) : null}
                     </div>
                     <label className={labelClass}>
                       Budget
@@ -257,7 +292,7 @@ export default function Listings() {
                     </label>
                     <Button type="submit" disabled={isSubmitting}>
                       <Send size={15} />
-                      {isSubmitting ? 'Envoi...' : 'Envoyer ma candidature'}
+                      {isSubmitting ? 'Envoi...' : activeApplication ? 'Enregistrer les modifications' : 'Envoyer ma candidature'}
                     </Button>
                   </form>
                 )
@@ -281,6 +316,19 @@ export default function Listings() {
       )}
     </section>
   )
+}
+
+function applicationToForm(application: ListingApplication): ListingApplicationInput {
+  return {
+    budget: application.budget,
+    profession: application.profession ?? '',
+    maritalStatus: application.maritalStatus
+      ? API_MARITAL_LABEL_MAP[application.maritalStatus] ?? ''
+      : '',
+    hasChildren: Boolean(application.hasChildren),
+    childrenCount: application.childrenCount ?? undefined,
+    message: application.message ?? '',
+  }
 }
 
 function ListingCard({

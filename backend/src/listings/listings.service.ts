@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingApplicationDto } from './dto/create-listing-application.dto';
 import { CreateListingDto } from './dto/create-listing.dto';
+import { UpdateListingApplicationDto } from './dto/update-listing-application.dto';
 import { UpdateListingApplicationStatusDto } from './dto/update-listing-application-status.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 
@@ -264,6 +265,67 @@ export class ListingsService {
       ...this.serializeApplication(application),
       listing: this.serializeListing(application.listing),
     }));
+  }
+
+  async updateMyApplication(
+    id: string,
+    userId: string,
+    dto: UpdateListingApplicationDto,
+  ) {
+    const application = await this.prisma.listingApplication.findFirst({
+      where: { id, userId },
+      include: applicationInclude,
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.status === ListingApplicationStatus.RESERVED) {
+      throw new BadRequestException(
+        'Une candidature reservee ne peut plus etre modifiee.',
+      );
+    }
+
+    const updated = await this.prisma.listingApplication.update({
+      where: { id },
+      data: {
+        budget: dto.budget?.trim(),
+        profession:
+          dto.profession === undefined
+            ? undefined
+            : this.optionalText(dto.profession),
+        maritalStatus: dto.maritalStatus,
+        hasChildren: dto.hasChildren,
+        childrenCount:
+          dto.hasChildren === undefined
+            ? undefined
+            : dto.hasChildren
+              ? dto.childrenCount
+              : null,
+        message:
+          dto.message === undefined
+            ? undefined
+            : this.optionalText(dto.message),
+        status:
+          application.status === ListingApplicationStatus.CANCELLED
+            ? ListingApplicationStatus.INTERESTED
+            : undefined,
+      },
+      include: applicationInclude,
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'LISTING_APPLICATION_UPDATE',
+        entity: 'ListingApplication',
+        entityId: id,
+        metadata: { listingId: updated.listingId },
+      },
+    });
+
+    return this.serializeApplication(updated);
   }
 
   async updateApplicationStatus(
