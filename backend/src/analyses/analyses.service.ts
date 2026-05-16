@@ -10,6 +10,7 @@ import {
   resolveBudgetRange,
   resolveSurfaceRange,
 } from './analysis-range.util';
+import { buildAnalysisSnapshot } from './analysis-history.util';
 import { AnalysisScoringService } from './analysis-scoring.service';
 import { CreateAnalysisDto } from './dto/create-analysis.dto';
 import { UpdateAnalysisDto } from './dto/update-analysis.dto';
@@ -207,14 +208,36 @@ export class AnalysesService {
 
   async deleteForUser(id: string, user: AuthenticatedUser) {
     const existingAnalysis = await this.findAnalysisEntityForUser(id, user);
+    const deletedBy = user.role === Role.ADMIN ? 'admin' : 'user';
+    const snapshot = buildAnalysisSnapshot(existingAnalysis);
 
     await this.prisma.$transaction([
+      this.prisma.analysisHistory.create({
+        data: {
+          originalAnalysisId: existingAnalysis.id,
+          userId: existingAnalysis.userId,
+          userEmail: existingAnalysis.user.email,
+          userFirstName: existingAnalysis.user.firstName,
+          userLastName: existingAnalysis.user.lastName,
+          userPhone: existingAnalysis.user.phone,
+          snapshot,
+          deletedBy,
+        },
+      }),
       this.prisma.auditLog.create({
         data: {
           userId: user.id,
           action: 'ANALYSIS_DELETE',
           entity: 'Analysis',
           entityId: existingAnalysis.id,
+          metadata: {
+            deletedBy,
+            historySnapshot: true,
+            projectType: existingAnalysis.projectType,
+            city: existingAnalysis.city,
+            score: existingAnalysis.score,
+            userEmail: existingAnalysis.user.email,
+          },
         },
       }),
       this.prisma.analysis.delete({ where: { id } }),

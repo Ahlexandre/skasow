@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   Building2,
-  ClipboardCheck,
   FileText,
   Handshake,
   Home,
@@ -19,7 +18,6 @@ export const serviceSlugs: Record<string, string> = {
   Location: 'location',
   Vente: 'vente',
   Investissement: 'investissement',
-  'Gestion immobilière': 'gestion-immobiliere',
   'Accompagnement administratif': 'accompagnement-administratif',
 }
 
@@ -69,12 +67,6 @@ export const realEstateServices: RealEstateService[] = [
     description:
       'Lecture du potentiel locatif, analyse du quartier, niveau de risque et pistes pour sécuriser une décision patrimoniale.',
     icon: Building2,
-  },
-  {
-    title: 'Gestion immobilière',
-    description:
-      'Suivi administratif, relation locataire, maintenance de premier niveau et reporting simple pour les propriétaires.',
-    icon: ClipboardCheck,
   },
   {
     title: 'Accompagnement administratif',

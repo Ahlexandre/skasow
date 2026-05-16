@@ -11,6 +11,7 @@ export default defineConfig({
       '/analyses': 'http://localhost:3000',
       '/users': 'http://localhost:3000',
       '/chatbot': 'http://localhost:3000',
+      '/admin': 'http://localhost:3000',
     },
   },
 })

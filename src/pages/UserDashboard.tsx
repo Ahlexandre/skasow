@@ -1,10 +1,10 @@
-import {
+﻿import {
   ArrowRight,
   FileCheck2,
   LogOut,
   Pencil,
   Save,
-  Trash2,
+  Shield,
   TrendingUp,
   UserRound,
   X,
@@ -30,7 +30,7 @@ import {
   primaryButton,
 } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
-import { deleteMyProspect, fetchMyProspects, updateMyProspect } from '../services/prospectService'
+import { fetchMyProspects, updateMyProspect } from '../services/prospectService'
 import type { AnalysisFormData, ProjectType } from '../types/analysis'
 import type { Prospect } from '../types/prospect'
 
@@ -100,22 +100,6 @@ export default function UserDashboard() {
     }
   }
 
-  const deleteProspect = async (id: string) => {
-    const confirmed = window.confirm('Supprimer definitivement cette pre-analyse ?')
-    if (!confirmed) return
-
-    setSavingId(id)
-    try {
-      await deleteMyProspect(id)
-      setProspects((current) => current.filter((prospect) => prospect.id !== id))
-      if (editingId === id) cancelEdit()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Suppression impossible.')
-    } finally {
-      setSavingId(null)
-    }
-  }
-
   if (!currentUser) return null
 
   if (isLoading) {
@@ -159,6 +143,15 @@ export default function UserDashboard() {
         Nouvelle pre-analyse <ArrowRight size={15} strokeWidth={2} />
       </Link>
 
+      <Link
+        to="/mes-donnees"
+        className="mb-10 flex w-fit items-center gap-2 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/8 px-5 py-2.5 text-sm font-semibold text-[#C9A84C] transition hover:bg-[#C9A84C]/14"
+      >
+        <Shield size={15} strokeWidth={1.75} />
+        Gerer mes donnees et suppressions
+        <ArrowRight size={14} />
+      </Link>
+
       {error && (
         <div className="mb-6 rounded-[14px] border border-red-500/20 bg-red-500/8 p-4 text-sm text-red-300">
           {error}
@@ -173,9 +166,6 @@ export default function UserDashboard() {
               <div className="flex flex-wrap gap-3 rounded-[16px] border border-white/6 bg-[#111118] p-4">
                 <Button variant="secondary" onClick={() => startEdit(prospect)} disabled={savingId === prospect.id}>
                   <Pencil size={15} strokeWidth={1.9} /> Modifier
-                </Button>
-                <Button variant="danger" onClick={() => void deleteProspect(prospect.id)} disabled={savingId === prospect.id}>
-                  <Trash2 size={15} strokeWidth={1.9} /> Supprimer
                 </Button>
               </div>
 
@@ -315,3 +305,5 @@ function EditAnalysisForm({
     </div>
   )
 }
+
+

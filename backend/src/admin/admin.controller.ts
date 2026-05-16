@@ -34,6 +34,16 @@ export class AdminController {
     return this.adminService.getDashboardStats();
   }
 
+  @Get('activity')
+  getRecentActivity() {
+    return this.adminService.getRecentActivity();
+  }
+
+  @Get('history')
+  getHistory() {
+    return this.adminService.getHistory();
+  }
+
   @Get('analyses')
   getAnalyses(@Query() query: AdminAnalysisQueryDto) {
     return this.adminService.findAnalyses(query);

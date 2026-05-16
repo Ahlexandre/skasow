@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, ShieldCheck, User, X } from 'lucide-react'
+import { ArrowRight, Building2, History, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Shield, ShieldCheck, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { publicNavLinks, secondaryNavLinks } from '../data/services'
@@ -20,7 +20,9 @@ function mobileNavLinkClass(active: boolean) {
 
 const sidebarLinks = [
   { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard },
-  { label: 'Mon espace',  to: '/mon-espace',       icon: User },
+  { label: 'Historique', to: '/admin/historique', icon: History, adminOnly: true },
+  { label: 'Mon espace', to: '/mon-espace', icon: User },
+  { label: 'Mes donnees', to: '/mes-donnees', icon: Shield, userOnly: true },
   { label: 'Utilisateurs', to: '/admin/users',      icon: ShieldCheck, adminOnly: true },
   { label: 'Chatbot',     to: '/chatbot',           icon: MessageCircle },
   { label: 'Contact',     to: '/contact',           icon: Phone },
@@ -70,7 +72,11 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
         <div className="h-px bg-white/5" />
         <nav className="flex flex-1 flex-col gap-0.5 px-3 py-4">
           {sidebarLinks
-            .filter((link) => !link.adminOnly || isAdmin)
+            .filter((link) => {
+              if (link.adminOnly && !isAdmin) return false
+              if ('userOnly' in link && link.userOnly && isAdmin) return false
+              return true
+            })
             .map(({ label, to, icon: Icon }) => {
             const active = location.pathname === to
             return (

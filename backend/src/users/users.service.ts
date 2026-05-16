@@ -1,5 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
+import { AccountDeletionRequestStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AccountDeletionRequestDto } from './dto/account-deletion-request.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -34,6 +39,62 @@ export class UsersService {
     });
 
     return this.toPublicUser(user);
+  }
+
+  async requestAccountDeletion(userId: string, dto: AccountDeletionRequestDto) {
+    const user = await this.prisma.user.findFirstOrThrow({
+      where: { id: userId, deletedAt: null },
+    });
+
+    const existingPending = await this.prisma.accountDeletionRequest.findFirst({
+      where: {
+        userId,
+        status: AccountDeletionRequestStatus.PENDING,
+      },
+    });
+
+    if (existingPending) {
+      throw new BadRequestException(
+        'Une demande de suppression de compte est deja en cours.',
+      );
+    }
+
+    const request = await this.prisma.accountDeletionRequest.create({
+      data: {
+        userId,
+        reason: dto.reason?.trim() || null,
+        userSnapshot: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'ACCOUNT_DELETION_REQUESTED',
+        entity: 'AccountDeletionRequest',
+        entityId: request.id,
+        metadata: {
+          reason: request.reason,
+          userEmail: user.email,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      requestId: request.id,
+      status: request.status,
+      message:
+        'Votre demande a ete enregistree. Un administrateur traitera la suppression de votre compte.',
+    };
   }
 
   async deleteMe(userId: string) {

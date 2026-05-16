@@ -1,12 +1,12 @@
-﻿import { ArrowRight, ArrowUpRight, BrainCircuit } from 'lucide-react'
+﻿import { ArrowRight, BrainCircuit } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { realEstateServices, serviceNavAnchors, serviceSlugs } from '../data/services'
+import HomeServicesSection from '../components/HomeServicesSection'
 import { primaryButton } from '../components/ui'
 
 const marqueeItems = [
   'Achat', 'Location', 'Vente', 'Investissement',
-  'Gestion', 'Accompagnement', 'Bamako', 'ACI 2000',
+  'Accompagnement', 'Bamako', 'ACI 2000',
   'Badalabougou', 'Sotuba', 'Kalaban-Coura', 'Mali',
 ]
 
@@ -97,109 +97,7 @@ export default function Home() {
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SERVICES â€” grille bento
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section id="services" className="scroll-mt-24 px-6 py-24 lg:px-16 lg:py-32">
-
-        <div className="mb-14 flex items-end justify-between">
-          <div>
-            <span className="label-mono">002 â€” Services</span>
-            <h2 className="title-display title-xl mt-4 text-[#EDEAE4]">
-              Ce que nous faisons
-            </h2>
-          </div>
-        </div>
-
-        {/* Grille bento */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          {/* Grande cellule â€” col-span 2, row-span 2 */}
-          <div
-            id={serviceNavAnchors[realEstateServices[0].title]}
-            className="bento-cell flex scroll-mt-28 flex-col justify-between p-8 sm:col-span-2 sm:row-span-2"
-            style={{ minHeight: '340px' }}
-          >
-            <div>
-              <span className="label-mono">01</span>
-              <h3 className="title-display title-md mt-5 text-[#EDEAE4] lg:title-lg">
-                {realEstateServices[0].title}
-              </h3>
-              <p className="mt-4 text-sm leading-7 text-[#9E9A94]">
-                {realEstateServices[0].description}
-              </p>
-            </div>
-            <Link
-              to={`/services/${serviceSlugs[realEstateServices[0].title]}`}
-              className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A]"
-            >
-              Decouvrir <ArrowRight size={14} strokeWidth={2.5} />
-            </Link>
-          </div>
-
-          {/* 4 petites cellules */}
-          {realEstateServices.slice(1, 5).map((s, i) => {
-            const slug = serviceSlugs[s.title] ?? s.title.toLowerCase().replace(/\s+/g, '-')
-            return (
-              <Link
-                key={s.title}
-                to={`/services/${slug}`}
-                className="bento-cell flex flex-col justify-between p-6 scroll-mt-28"
-                style={{ minHeight: '160px' }}
-              >
-                <div>
-                  <span className="label-mono">0{i + 2}</span>
-                  <h3 className="mt-3 text-base font-semibold leading-snug text-[#EDEAE4]">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-xs leading-6 text-[#5E5B56] line-clamp-2">
-                    {s.description}
-                  </p>
-                </div>
-                <span className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#C9A84C]">
-                  Decouvrir <ArrowRight size={12} strokeWidth={2.5} />
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-
-        <div className="mt-20 flex flex-col border-t border-white/5 pt-16">
-          <p className="mb-10 max-w-lg text-sm leading-7 text-[#9E9A94]">
-            Cliquez sur un service pour decouvrir comment DS Conseil vous accompagne concretement.
-          </p>
-          {realEstateServices.map((service, i) => {
-            const slug = serviceSlugs[service.title] ?? service.title.toLowerCase().replace(/\s+/g, '-')
-            const anchor = serviceNavAnchors[service.title]
-            const Icon = service.icon
-            return (
-              <Link
-                key={service.title}
-                id={anchor}
-                to={`/services/${slug}`}
-                className="group flex scroll-mt-28 items-center justify-between border-b border-white/5 py-8 transition-all duration-200 hover:border-[#C9A84C]/20 lg:py-10"
-              >
-                <div className="flex items-start gap-6 lg:gap-12">
-                  <span className="label-mono w-8 shrink-0 pt-1">0{i + 1}</span>
-                  <div className="flex items-start gap-5">
-                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#C9A84C]/8 text-[#C9A84C] transition-colors group-hover:bg-[#C9A84C]/15">
-                      <Icon size={18} strokeWidth={1.75} />
-                    </div>
-                    <div>
-                      <h3 className="title-display text-xl text-[#EDEAE4] transition-colors group-hover:text-[#C9A84C] lg:text-2xl">
-                        {service.title}
-                      </h3>
-                      <p className="mt-2 max-w-lg text-sm leading-7 text-[#5E5B56]">{service.description}</p>
-                    </div>
-                  </div>
-                </div>
-                <ArrowUpRight
-                  size={18}
-                  strokeWidth={1.75}
-                  className="shrink-0 text-[#5E5B56] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#C9A84C]"
-                />
-              </Link>
-            )
-          })}
-        </div>
-      </section>
+      <HomeServicesSection />
 
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           ANALYSE IA

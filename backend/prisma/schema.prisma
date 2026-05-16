@@ -57,6 +57,12 @@ enum MaritalStatus {
   PREFER_NOT_TO_SAY
 }
 
+enum AccountDeletionRequestStatus {
+  PENDING
+  PROCESSED
+  CANCELLED
+}
+
 model User {
   id            String         @id @default(uuid())
   firstName     String
@@ -68,9 +74,10 @@ model User {
   deletedAt     DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  analyses      Analysis[]
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
+  analyses                 Analysis[]
+  refreshTokens            RefreshToken[]
+  auditLogs                AuditLog[]
+  accountDeletionRequests  AccountDeletionRequest[]
 
   @@index([role])
   @@index([deletedAt])
@@ -131,6 +138,39 @@ model Analysis {
   @@index([commercialPriority])
   @@index([status])
   @@index([score])
+  @@index([createdAt])
+}
+
+model AnalysisHistory {
+  id                 String   @id @default(uuid())
+  originalAnalysisId String
+  userId             String?
+  userEmail          String
+  userFirstName      String
+  userLastName       String
+  userPhone          String?
+  snapshot           Json
+  deletedBy          String
+  deletedAt          DateTime @default(now())
+
+  @@index([userId])
+  @@index([deletedAt])
+  @@index([originalAnalysisId])
+}
+
+model AccountDeletionRequest {
+  id                   String                       @id @default(uuid())
+  userId               String
+  reason               String?
+  status               AccountDeletionRequestStatus @default(PENDING)
+  userSnapshot         Json
+  createdAt            DateTime                     @default(now())
+  processedAt          DateTime?
+  processedByAdminId   String?
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
   @@index([createdAt])
 }
 

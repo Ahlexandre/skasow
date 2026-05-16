@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  AccountDeletionRequestStatus,
   AnalysisStatus,
   CommercialPriority,
   Prisma,
@@ -16,6 +17,7 @@ import {
   AnalysesService,
   analysisWithUserInclude,
 } from '../analyses/analyses.service';
+import { buildAnalysisSnapshot } from '../analyses/analysis-history.util';
 import { getPagination, paginatedResponse } from '../common/utils/pagination';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminAnalysisQueryDto } from './dto/admin-analysis-query.dto';
@@ -196,7 +198,7 @@ export class AdminService {
   async deleteAnalysis(id: string, currentAdminId: string) {
     const existingAnalysis = await this.prisma.analysis.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      include: analysisWithUserInclude,
     });
 
     if (!existingAnalysis) {
@@ -207,7 +209,21 @@ export class AdminService {
       throw new BadRequestException('Only archived analyses can be deleted');
     }
 
+    const snapshot = buildAnalysisSnapshot(existingAnalysis);
+
     await this.prisma.$transaction([
+      this.prisma.analysisHistory.create({
+        data: {
+          originalAnalysisId: existingAnalysis.id,
+          userId: existingAnalysis.userId,
+          userEmail: existingAnalysis.user.email,
+          userFirstName: existingAnalysis.user.firstName,
+          userLastName: existingAnalysis.user.lastName,
+          userPhone: existingAnalysis.user.phone,
+          snapshot,
+          deletedBy: 'admin',
+        },
+      }),
       this.prisma.analysis.delete({
         where: { id },
       }),
@@ -217,6 +233,7 @@ export class AdminService {
           action: 'ADMIN_ANALYSIS_DELETE',
           entity: 'Analysis',
           entityId: id,
+          metadata: { historySnapshot: true },
         },
       }),
     ]);
@@ -341,6 +358,17 @@ export class AdminService {
     const now = new Date();
 
     await this.prisma.$transaction([
+      this.prisma.accountDeletionRequest.updateMany({
+        where: {
+          userId: id,
+          status: AccountDeletionRequestStatus.PENDING,
+        },
+        data: {
+          status: AccountDeletionRequestStatus.PROCESSED,
+          processedAt: now,
+          processedByAdminId: currentAdminId,
+        },
+      }),
       this.prisma.refreshToken.updateMany({
         where: { userId: id, revokedAt: null },
         data: { revokedAt: now },
@@ -475,6 +503,87 @@ export class AdminService {
       analysesCount: user._count.analyses,
       activeSessionsCount: user._count.refreshTokens,
       analyses: user.analyses ?? [],
+    };
+  }
+
+  async getRecentActivity() {
+    const history = await this.getHistory();
+    return history.recentActivity;
+  }
+
+  async getHistory() {
+    const [analysisHistories, accountDeletionRequests, recentActivity] =
+      await Promise.all([
+        this.prisma.analysisHistory.findMany({
+          orderBy: { deletedAt: 'desc' },
+          take: 100,
+        }),
+        this.prisma.accountDeletionRequest.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 100,
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                deletedAt: true,
+              },
+            },
+          },
+        }),
+        this.prisma.auditLog.findMany({
+          where: {
+            action: {
+              in: [
+                'ANALYSIS_DELETE',
+                'ACCOUNT_DELETION_REQUESTED',
+                'USER_ACCOUNT_DELETE',
+                'ADMIN_USER_DELETE',
+              ],
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 30,
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+    return {
+      analysisHistories: analysisHistories.map((entry) => ({
+        ...entry,
+        snapshot: entry.snapshot,
+      })),
+      accountDeletionRequests: accountDeletionRequests.map((request) => ({
+        id: request.id,
+        userId: request.userId,
+        reason: request.reason,
+        status: request.status,
+        userSnapshot: request.userSnapshot,
+        createdAt: request.createdAt,
+        processedAt: request.processedAt,
+        processedByAdminId: request.processedByAdminId,
+        user: request.user,
+      })),
+      recentActivity: recentActivity.map((log) => ({
+        id: log.id,
+        action: log.action,
+        entity: log.entity,
+        entityId: log.entityId,
+        metadata: log.metadata,
+        createdAt: log.createdAt,
+        user: log.user,
+      })),
     };
   }
 }

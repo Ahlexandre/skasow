@@ -5,7 +5,10 @@ import Navbar from './Navbar'
 
 export default function Layout() {
   const location = useLocation()
-  const isDashboard = location.pathname.startsWith('/admin') || location.pathname === '/mon-espace'
+  const isDashboard =
+    location.pathname.startsWith('/admin') ||
+    location.pathname === '/mon-espace' ||
+    location.pathname === '/mes-donnees'
 
   return (
     <div className="grain relative min-h-screen bg-app text-[#EDEAE4]">

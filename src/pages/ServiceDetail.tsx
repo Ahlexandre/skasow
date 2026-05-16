@@ -92,26 +92,6 @@ const serviceContent: Record<string, {
     forWho: 'Investisseurs maliens et etrangers, diaspora souhaitant placer des fonds dans l immobilier au Mali.',
     cta: 'Analyser mon projet investissement',
   },
-  'gestion-immobiliere': {
-    slug: 'gestion-immobiliere',
-    tagline: 'Confiez la gestion de votre bien a des professionnels.',
-    intro: 'Gerer un bien immobilier a distance ou en parallele d une activite professionnelle est complexe. DS Conseil prend en charge le suivi administratif et la relation avec vos locataires.',
-    howWeHelp: [
-      { title: 'Suivi administratif', desc: 'Nous gerons les documents, les echeances et les obligations liees a votre bien : baux, quittances, declarations.' },
-      { title: 'Relation locataire', desc: 'Nous sommes l interlocuteur de vos locataires pour les demandes courantes, les reclamations et les renouvellements de bail.' },
-      { title: 'Maintenance de premier niveau', desc: 'Nous coordonnons les interventions de maintenance courante et vous alertons sur les travaux necessaires.' },
-      { title: 'Reporting proprietaire', desc: 'Vous recevez un rapport regulier sur l etat de votre bien, les paiements recus et les actions en cours.' },
-    ],
-    whatYouGet: [
-      'Une gestion complete de votre bien sans stress',
-      'Un reporting mensuel clair et structure',
-      'Une relation locataire professionnelle',
-      'Une coordination des interventions de maintenance',
-      'Une disponibilite pour vos questions a tout moment',
-    ],
-    forWho: 'Proprietaires bailleurs, expatries, investisseurs souhaitant deleger la gestion de leur patrimoine immobilier au Mali.',
-    cta: 'Confier la gestion de mon bien',
-  },
   'accompagnement-administratif': {
     slug: 'accompagnement-administratif',
     tagline: 'Naviguez sereinement dans les demarches immobilieres maliennes.',
@@ -139,7 +119,6 @@ const slugMap: Record<string, string> = {
   location: 'Location',
   vente: 'Vente',
   investissement: 'Investissement',
-  'gestion-immobiliere': 'Gestion immobiliere',
   'accompagnement-administratif': 'Accompagnement administratif',
 }
 

@@ -11,6 +11,8 @@ import FAQ from './pages/FAQ'
 import Home from './pages/Home'
 import PreAnalysis from './pages/PreAnalysis'
 import ServiceDetail from './pages/ServiceDetail'
+import AdminHistory from './pages/AdminHistory'
+import MyData from './pages/MyData'
 import UserDashboard from './pages/UserDashboard'
 
 function App() {
@@ -38,6 +40,14 @@ function App() {
               }
             />
             <Route
+              path="mes-donnees"
+              element={
+                <ProtectedRoute>
+                  <MyData />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="admin/dashboard"
               element={
                 <ProtectedRoute adminOnly>
@@ -50,6 +60,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/historique"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminHistory />
                 </ProtectedRoute>
               }
             />
