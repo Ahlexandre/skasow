@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, BrainCircuit, CheckCircle2, Clock, Home, KeyRoun
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
+import PrivacyPolicyLink from '../components/PrivacyPolicyLink'
 import {
   BudgetSelect,
   LocationSelect,
@@ -329,7 +330,10 @@ export default function PreAnalysis() {
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-6 text-[#6B6760]">
                   <input type="checkbox" checked={formData.consent} onChange={(e) => updateField('consent', e.target.checked)} className="mt-1 h-4 w-4 accent-[#C9A84C]" />
-                  J accepte que ces informations soient utilisees pour preparer ma pre-analyse.
+                  <span>
+                    J accepte que ces informations soient utilisees pour preparer ma pre-analyse, conformement a la{' '}
+                    <PrivacyPolicyLink />.
+                  </span>
                 </label>
               </div>
             )}

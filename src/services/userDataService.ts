@@ -1,6 +1,6 @@
 import { apiRequest } from './apiClient'
 
-export async function requestAccountDeletion(reason?: string): Promise<{
+export async function requestAccountDeletion(reason: string): Promise<{
   success: boolean
   requestId: string
   status: string
@@ -8,6 +8,6 @@ export async function requestAccountDeletion(reason?: string): Promise<{
 }> {
   return apiRequest('/users/me/deletion-request', {
     method: 'POST',
-    body: JSON.stringify({ reason: reason?.trim() || undefined }),
+    body: JSON.stringify({ reason: reason.trim() }),
   })
 }

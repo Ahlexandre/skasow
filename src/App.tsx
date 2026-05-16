@@ -8,6 +8,7 @@ import Auth from './pages/Auth'
 import Chatbot from './pages/Chatbot'
 import Contact from './pages/Contact'
 import FAQ from './pages/FAQ'
+import Privacy from './pages/Privacy'
 import Home from './pages/Home'
 import PreAnalysis from './pages/PreAnalysis'
 import ServiceDetail from './pages/ServiceDetail'
@@ -29,6 +30,7 @@ function App() {
             <Route path="chatbot" element={<Chatbot />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="privacy" element={<Privacy />} />
             <Route path="auth" element={<Auth />} />
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route

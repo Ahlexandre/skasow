@@ -186,7 +186,7 @@ export function formatNumericToRangeLabel(
     if (item.min === undefined && item.max === undefined) return false
     if (item.min === undefined && item.max !== undefined) return value < item.max
     if (item.max === undefined && item.min !== undefined) return value >= item.min
-    return value >= item.min && value <= item.max
+    return item.min !== undefined && item.max !== undefined && value >= item.min && value <= item.max
   })
 
   return matched?.label ?? openEnded?.label ?? ''

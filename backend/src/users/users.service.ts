@@ -62,7 +62,7 @@ export class UsersService {
     const request = await this.prisma.accountDeletionRequest.create({
       data: {
         userId,
-        reason: dto.reason?.trim() || null,
+        reason: dto.reason.trim(),
         userSnapshot: {
           id: user.id,
           firstName: user.firstName,

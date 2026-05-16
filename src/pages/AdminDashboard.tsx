@@ -1,6 +1,5 @@
 import { BrainCircuit, ClipboardList, MessageSquareText, SearchCheck, UserRoundCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import AdminActivityPanel from '../components/AdminActivityPanel'
 import AnalysisCard from '../components/AnalysisCard'
 import DashboardTabs from '../components/DashboardTabs'
 import FilterBar, { type ProspectFilters, type ProspectSortBy, type ProspectSortOrder } from '../components/FilterBar'
@@ -207,8 +206,6 @@ export default function AdminDashboard() {
           {error}
         </div>
       )}
-
-      <AdminActivityPanel />
 
       <div className="mt-6 space-y-3">
         <DashboardTabs

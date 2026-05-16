@@ -1,9 +1,14 @@
 import { ArrowLeft, Shield, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
 import { Button, EmptyState, Textarea, labelClass, primaryButton } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
+import {
+  accountDeletionReasons,
+  buildAccountDeletionReason,
+  type AccountDeletionReasonId,
+} from '../data/accountDeletionReasons'
 import { deleteMyProspect, fetchMyProspects } from '../services/prospectService'
 import { requestAccountDeletion } from '../services/userDataService'
 import type { Prospect } from '../types/prospect'
@@ -13,7 +18,8 @@ export default function MyData() {
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
-  const [reason, setReason] = useState('')
+  const [reasonId, setReasonId] = useState<AccountDeletionReasonId | ''>('')
+  const [otherDetail, setOtherDetail] = useState('')
   const [isSubmittingAccount, setIsSubmittingAccount] = useState(false)
   const [accountMessage, setAccountMessage] = useState('')
   const [error, setError] = useState('')
@@ -45,6 +51,11 @@ export default function MyData() {
 
   const submitAccountDeletion = async (event: React.FormEvent) => {
     event.preventDefault()
+    if (!reasonId) {
+      setError('Veuillez selectionner un motif de suppression.')
+      return
+    }
+
     const confirmed = window.confirm(
       'Envoyer une demande de suppression de compte ?\n\nUn administrateur traitera votre demande manuellement.',
     )
@@ -54,9 +65,11 @@ export default function MyData() {
     setError('')
     setAccountMessage('')
     try {
+      const reason = buildAccountDeletionReason(reasonId, otherDetail)
       const response = await requestAccountDeletion(reason)
       setAccountMessage(response.message)
-      setReason('')
+      setReasonId('')
+      setOtherDetail('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Demande impossible.')
     } finally {
@@ -126,16 +139,59 @@ export default function MyData() {
           </div>
         </div>
         <form onSubmit={(e) => void submitAccountDeletion(e)} className="mt-6">
-          <label className={labelClass}>
-            Motif (facultatif)
-            <Textarea
-              rows={4}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="Precisez la raison si vous le souhaitez..."
-            />
-          </label>
-          <Button type="submit" variant="danger" className="mt-4" disabled={isSubmittingAccount}>
+          <fieldset>
+            <legend className={labelClass}>Motif de suppression</legend>
+            <ul className="mt-3 flex flex-col gap-2">
+              {accountDeletionReasons.map((option) => {
+                const selected = reasonId === option.id
+                return (
+                  <li key={option.id}>
+                    <label
+                      className={
+                        'flex cursor-pointer items-center gap-3 rounded-[12px] border px-4 py-3 text-sm transition ' +
+                        (selected
+                          ? 'border-[#C9A84C]/40 bg-[#C9A84C]/8 text-[#EDEAE4]'
+                          : 'border-white/6 bg-white/[0.02] text-[#9E9A94] hover:border-white/10')
+                      }
+                    >
+                      <input
+                        type="radio"
+                        name="deletion-reason"
+                        value={option.id}
+                        checked={selected}
+                        onChange={() => {
+                          setReasonId(option.id)
+                          setError('')
+                          if (option.id !== 'other') setOtherDetail('')
+                        }}
+                        className="h-4 w-4 accent-[#C9A84C]"
+                      />
+                      {option.label}
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+          </fieldset>
+
+          {reasonId === 'other' ? (
+            <label className={`${labelClass} mt-5`}>
+              Precisez (facultatif)
+              <Textarea
+                rows={3}
+                value={otherDetail}
+                onChange={(event) => setOtherDetail(event.target.value)}
+                placeholder="Decrivez votre motif si vous le souhaitez..."
+              />
+            </label>
+          ) : null}
+
+          <Button
+            type="submit"
+            variant="danger"
+            className="mt-5"
+            disabled={isSubmittingAccount || !reasonId}
+          >
             {isSubmittingAccount ? 'Envoi en cours...' : 'Demander la suppression du compte'}
           </Button>
         </form>

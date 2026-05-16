@@ -1,10 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class AccountDeletionRequestDto {
-  @ApiPropertyOptional({ example: 'Je ne souhaite plus utiliser le service.' })
-  @IsOptional()
+  @ApiProperty({ example: 'Mauvais service' })
   @IsString()
+  @IsNotEmpty()
   @MaxLength(2000)
-  reason?: string;
+  reason!: string;
 }

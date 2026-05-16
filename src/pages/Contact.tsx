@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import PrivacyPolicyLink from '../components/PrivacyPolicyLink'
 import { Input, Select, Textarea, labelClass } from '../components/ui'
 
 const NEEDS = ['Achat', 'Location', 'Vente', 'Investissement', 'Gestion immobiliere', 'Accompagnement administratif', 'Autre']
@@ -91,7 +92,10 @@ export default function Contact() {
 
           <label className="flex items-start gap-3 text-sm leading-7 text-[#5E5B56]">
             <input required type="checkbox" className="mt-1 h-4 w-4 accent-[#C9A84C]" />
-            J accepte que DS Conseil utilise ces informations pour repondre a ma demande.
+            <span>
+              J accepte que DS Conseil utilise ces informations pour repondre a ma demande, conformement a la{' '}
+              <PrivacyPolicyLink />.
+            </span>
           </label>
 
           {isSent ? (
