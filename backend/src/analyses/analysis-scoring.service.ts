@@ -115,7 +115,7 @@ export class AnalysisScoringService {
     if (!contact.email?.trim()) missingInfo.push('Email manquant');
     if (!dto.budget || dto.budget <= 0) missingInfo.push('Budget a cadrer');
     if (!dto.district?.trim()) missingInfo.push('Quartier a preciser');
-    if (!dto.propertyType?.trim()) missingInfo.push('Type de bien a confirmer');
+    if (!dto.propertyType?.trim()) missingInfo.push('Type de bien à confirmer');
     if (!dto.surface || dto.surface <= 0)
       missingInfo.push('Surface souhaitee a preciser');
 

@@ -9,7 +9,7 @@ export class ChatbotService {
     if (message.includes('acheter') || message.includes('achat')) {
       return {
         reply:
-          'Pour un achat, je peux vous orienter sur le budget, la localisation et le type de bien. Une pre-analyse permettra a DS Conseil de qualifier votre projet.',
+          'Pour un achat, je peux vous orienter sur le budget, la localisation et le type de bien. Une pre-analyse permettra à DS Conseil de qualifier votre projet.',
         intent: 'BUY',
       };
     }
@@ -40,7 +40,7 @@ export class ChatbotService {
 
     return {
       reply:
-        'Je peux vous aider sur un projet d achat, de location, de vente ou d investissement immobilier au Mali. Precisez votre objectif pour continuer.',
+        "Je peux vous aider sur un projet d'achat, de location, de vente ou d'investissement immobilier au Mali. Precisez votre objectif pour continuer.",
       intent: 'GENERAL',
     };
   }

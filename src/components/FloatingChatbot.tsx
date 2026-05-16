@@ -13,7 +13,7 @@ export default function FloatingChatbot() {
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Bonjour ! Je suis l assistant DS Conseil. Comment puis-je vous aider ?' },
+    { role: 'assistant', content: "Bonjour ! Je suis l'assistant DS Conseil. Comment puis-je vous aider ?" },
   ])
 
   const shouldHide = location.pathname === '/auth' || location.pathname.startsWith('/admin') || location.pathname === '/chatbot'

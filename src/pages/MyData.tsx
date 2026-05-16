@@ -34,7 +34,7 @@ export default function MyData() {
 
   const deleteProspect = async (id: string) => {
     const confirmed = window.confirm(
-      'Supprimer cette pre-analyse ?\n\nElle sera retiree de votre espace mais conservee dans l historique interne DS Conseil.',
+      "Supprimer cette pre-analyse ?\n\nElle sera retiree de votre espace mais conservee dans l'historique interne DS Conseil.",
     )
     if (!confirmed) return
 
@@ -103,7 +103,7 @@ export default function MyData() {
         ) : prospects.length === 0 ? (
           <EmptyState
             title="Aucune pre-analyse"
-            description="Vous n avez aucune pre-analyse a supprimer."
+            description="Vous n'avez aucune pre-analyse a supprimer."
             action={<Link to="/pre-analysis" className={primaryButton}>Faire une pre-analyse</Link>}
           />
         ) : (

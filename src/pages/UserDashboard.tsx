@@ -36,7 +36,7 @@ import type { Prospect } from '../types/prospect'
 
 const projectTypes: ProjectType[] = ['Acheter', 'Louer', 'Vendre', 'Investir']
 const urgencyOptions = [
-  'Immediate (moins d 1 mois)',
+  "Immediate (moins d'1 mois)",
   'Sous 3 mois',
   'Dans 6 mois',
   'Exploration (pas de delai fixe)',
@@ -129,7 +129,7 @@ export default function UserDashboard() {
         {[
           { icon: FileCheck2, label: 'Pre-analyses', value: String(prospects.length) },
           { icon: TrendingUp, label: 'Prioritaires', value: String(prospects.filter((p) => p.status === 'Prioritaire').length) },
-          { icon: UserRound, label: 'A completer', value: String(prospects.filter((p) => p.status === 'À compléter').length) },
+          { icon: UserRound, label: 'À compléter', value: String(prospects.filter((p) => p.status === 'À compléter').length) },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-[16px] p-5" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
             <Icon size={16} className="text-[#C9A84C]" strokeWidth={1.75} />

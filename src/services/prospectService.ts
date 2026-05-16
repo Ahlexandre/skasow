@@ -46,14 +46,14 @@ const API_PROJECT_TYPE_MAP: Record<string, AnalysisFormData['projectType']> = {
 }
 
 const URGENCY_MAP: Record<string, string> = {
-  'Immediate (moins d 1 mois)': 'HIGH',
+  "Immediate (moins d'1 mois)": 'HIGH',
   'Sous 3 mois': 'MEDIUM',
   'Dans 6 mois': 'LOW',
   'Exploration (pas de delai fixe)': 'LOW',
 }
 
 const API_URGENCY_MAP: Record<string, string> = {
-  HIGH: 'Immediate (moins d 1 mois)',
+  HIGH: "Immediate (moins d'1 mois)",
   MEDIUM: 'Sous 3 mois',
   LOW: 'Exploration (pas de delai fixe)',
 }

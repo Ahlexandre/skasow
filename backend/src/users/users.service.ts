@@ -55,7 +55,7 @@ export class UsersService {
 
     if (existingPending) {
       throw new BadRequestException(
-        'Une demande de suppression de compte est deja en cours.',
+        'Une demande de suppression de compte est déjà en cours.',
       );
     }
 

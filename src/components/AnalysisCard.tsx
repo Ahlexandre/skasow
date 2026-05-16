@@ -56,7 +56,7 @@ export default function AnalysisCard({
           <div>
             <p className="label-mono">Score IA</p>
             <p className="mt-1.5 text-sm font-medium text-[#EDEAE4]">
-              {score >= 75 ? 'Dossier prioritaire' : score >= 45 ? 'A qualifier' : 'A completer'}
+              {score >= 75 ? 'Dossier prioritaire' : score >= 45 ? 'A qualifier' : 'À compléter'}
             </p>
             <div className="mt-2 h-1 w-20 overflow-hidden rounded-full bg-white/5">
               <div className="h-full rounded-full transition-all duration-700" style={{ width: score + '%', background: scoreColor }} />
@@ -138,9 +138,9 @@ export default function AnalysisCard({
           <div className="rounded-[12px] p-4" style={{ background: '#0F0F16', border: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="label-mono">Projet</p>
             <dl className="mt-3 grid gap-2 text-sm">
-              <DetailRow label="Budget" value={prospect.formData.budget || 'A preciser'} />
+              <DetailRow label="Budget" value={prospect.formData.budget || 'À préciser'} />
               <DetailRow label="Bien" value={prospect.formData.propertyType || 'A confirmer'} />
-              <DetailRow label="Surface" value={prospect.formData.surface || 'A preciser'} />
+              <DetailRow label="Surface" value={prospect.formData.surface || 'À préciser'} />
               <DetailRow label="Urgence" value={prospect.formData.urgency || 'A qualifier'} />
             </dl>
           </div>

@@ -10,7 +10,7 @@ export default function Chatbot() {
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Bonjour ! Je suis l assistant DS Conseil. Je peux vous orienter vers le bon parcours immobilier.' },
+    { role: 'assistant', content: "Bonjour ! Je suis l'assistant DS Conseil. Je peux vous orienter vers le bon parcours immobilier." },
   ])
 
   const sendMessage = async (message: string) => {

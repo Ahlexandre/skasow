@@ -114,7 +114,7 @@ export default function ProspectTable({
                 <td>{p.user.phone}</td>
                 <td>{p.formData.projectType}</td>
                 <td>{p.formData.location}</td>
-                <td>{p.formData.budget || 'A preciser'}</td>
+                <td>{p.formData.budget || 'À préciser'}</td>
                 <td>
                   <span className={'rounded-full px-2.5 py-1 text-xs font-bold ' + (p.analysis.score >= 75 ? 'bg-[#C9A84C]/12 text-[#C9A84C]' : 'bg-white/5 text-[#5E5B56]')}>
                     {p.analysis.score}/100

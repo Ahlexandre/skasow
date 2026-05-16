@@ -33,7 +33,7 @@ export default function Home() {
 
         {/* Label editorial haut */}
         <div className="flex items-center justify-between border-b border-white/5 pb-6">
-          <span className="label-mono">001 â€” Immobilier Mali</span>
+          <span className="label-mono">001 Immobilier Mali</span>
           <span className="label-mono">2025</span>
         </div>
 
@@ -49,8 +49,8 @@ export default function Home() {
         {/* Ligne sous le titre : description + CTA */}
         <div className="mt-12 flex flex-col gap-8 border-t border-white/5 pt-10 lg:flex-row lg:items-end lg:justify-between">
           <p className="max-w-xl text-base leading-8 text-[#9E9A94]">
-            DS Conseil vous accompagne dans vos projets d achat, de location,
-            de vente et d investissement grace a une analyse claire, rapide et
+            DS Conseil vous accompagne dans vos projets d'achat, de location,
+            de vente et d'investissement grâce à une analyse claire, rapide et
             personnalisee.
           </p>
           <div className="flex flex-shrink-0 flex-wrap gap-3">

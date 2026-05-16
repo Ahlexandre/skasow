@@ -185,7 +185,7 @@ export default function PreAnalysis() {
                 </label>
                 <div className="flex items-start gap-3 rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
                   <MapPin size={14} className="mt-0.5 shrink-0 text-[#C9A84C]" strokeWidth={2} />
-                  <p className="text-xs leading-6 text-[#6B6760]">Une localisation precise aide DS Conseil a mieux evaluer la coherence du budget et l urgence du dossier.</p>
+                  <p className="text-xs leading-6 text-[#6B6760]">Une localisation precise aide DS Conseil a mieux evaluer la coherence du budget et l'urgence du dossier.</p>
                 </div>
               </div>
             )}
@@ -217,14 +217,14 @@ export default function PreAnalysis() {
                 <label className={labelClass}>
                   Urgence
                   <Select value={formData.urgency} onChange={(e) => updateField('urgency', e.target.value)}>
-                    <option>Immediate (moins d 1 mois)</option>
+                    <option>Immediate (moins d'1 mois)</option>
                     <option>Sous 3 mois</option>
                     <option>Dans 6 mois</option>
                     <option>Exploration (pas de delai fixe)</option>
                   </Select>
                 </label>
                 <div className="col-span-2 flex items-start gap-3 rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
-                  <p className="text-xs leading-6 text-[#6B6760]">Tous les montants sont en <strong className="text-[#C9A84C]">Francs CFA (FCFA)</strong>. Si votre budget est flexible, choisissez la tranche la plus proche ou "Budget a definir".</p>
+                  <p className="text-xs leading-6 text-[#6B6760]">Tous les montants sont en <strong className="text-[#C9A84C]">Francs CFA (FCFA)</strong>. Si votre budget est flexible, choisissez la tranche la plus proche ou "Budget à définir".</p>
                 </div>
               </div>
             )}
@@ -320,18 +320,18 @@ export default function PreAnalysis() {
                     ['Bien', formData.propertyType],
                     ['Urgence', formData.urgency],
                     ['Profil', hasPersonalProfile(formData) ? 'Renseigne' : 'Non renseigne (facultatif)'],
-                    ['Contact', formData.phone || formData.email || 'A completer'],
+                    ['Contact', formData.phone || formData.email || 'À compléter'],
                   ].map(([label, value]) => (
                     <div key={label} className="flex flex-col gap-1 rounded-[10px] p-3" style={{ background: '#1C1C27' }}>
                       <span className="font-mono text-[10px] tracking-[0.15em] text-[#6B6760] uppercase">{label}</span>
-                      <span className="text-sm font-semibold text-[#F0EDE8]">{value || 'A preciser'}</span>
+                      <span className="text-sm font-semibold text-[#F0EDE8]">{value || 'À préciser'}</span>
                     </div>
                   ))}
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-6 text-[#6B6760]">
                   <input type="checkbox" checked={formData.consent} onChange={(e) => updateField('consent', e.target.checked)} className="mt-1 h-4 w-4 accent-[#C9A84C]" />
                   <span>
-                    J accepte que ces informations soient utilisees pour preparer ma pre-analyse, conformement a la{' '}
+                    J'accepte que ces informations soient utilisees pour preparer ma pre-analyse, conformément à la{' '}
                     <PrivacyPolicyLink />.
                   </span>
                 </label>
@@ -377,7 +377,7 @@ export default function PreAnalysis() {
             {authRequired && (
               <div className="mt-6 rounded-[14px] p-5" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)' }}>
                 <p className="font-semibold text-[#F0EDE8]">Connexion requise</p>
-                <p className="mt-2 text-xs leading-6 text-[#6B6760]">Le brouillon est conserve localement pour reprendre apres connexion.</p>
+                <p className="mt-2 text-xs leading-6 text-[#6B6760]">Le brouillon'est conserve localement pour reprendre apres connexion.</p>
                 <button type="button" onClick={() => { writeStorage(DRAFT_KEY, formData); navigate('/auth', { state: { from: '/pre-analysis' } }) }}
                   className={primaryButton + " mt-4 w-full"}>
                   Se connecter
@@ -389,11 +389,11 @@ export default function PreAnalysis() {
               <div className="mt-6 rounded-[14px] p-5" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)' }}>
                 <div className="flex gap-3">
                   <Clock className="mt-0.5 shrink-0 text-[#C9A84C]" size={16} strokeWidth={2} />
-                  <p className="text-sm font-semibold text-[#F0EDE8]">Confirmez l envoi a DS Conseil.</p>
+                  <p className="text-sm font-semibold text-[#F0EDE8]">Confirmez l'envoi à DS Conseil.</p>
                 </div>
                 <label className="mt-4 flex items-start gap-3 text-xs leading-6 text-[#6B6760]">
                   <input type="checkbox" checked={transmissionConsent} onChange={(e) => setTransmissionConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C9A84C]" />
-                  J accepte que mes informations soient transmises a DS Conseil.
+                  J'accepte que mes informations soient transmises à DS Conseil.
                 </label>
                 <button type="button" disabled={!transmissionConsent || isLoading} onClick={() => void generateAndSave()}
                   className={primaryButton + " mt-4 w-full"}>

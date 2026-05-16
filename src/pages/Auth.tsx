@@ -54,7 +54,7 @@ export default function Auth() {
           </p>
         </div>
         <div className="flex flex-col gap-4">
-          {['Retrouvez vos analyses immobilieres', 'Suivez l avancement de vos demandes', 'Echangez plus facilement avec DS Conseil'].map((b) => (
+          {['Retrouvez vos analyses immobilieres', "Suivez l'avancement de vos demandes", 'Echangez plus facilement avec DS Conseil'].map((b) => (
             <div key={b} className="flex items-center gap-3 border-b border-white/5 pb-4">
               <span className="h-1 w-4 rounded-full bg-[#C9A84C]" />
               <span className="text-sm text-[#A8A49E]">{b}</span>
@@ -108,7 +108,7 @@ export default function Auth() {
                     className="rounded-l-none"
                   />
                 </div>
-                <span className="text-[10px] text-[#6B6760]">Indicatif Mali (+223) deja inclus.</span>
+                <span className="text-[10px] text-[#6B6760]">Indicatif Mali (+223) déjà inclus.</span>
               </label>
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className={labelClass}>Mot de passe<Input required type="password" value={registerForm.password} onChange={(e) => setRegisterForm((c) => ({ ...c, password: e.target.value }))} /></label>
@@ -123,7 +123,7 @@ export default function Auth() {
 
           <button type="button" onClick={() => navigate(from || '/')}
             className="mt-6 text-sm text-[#6B6760] transition-colors hover:text-[#A8A49E]">
-            {from ? 'Retour' : 'Retour a l accueil'}
+            {from ? 'Retour' : "Retour à l'accueil"}
           </button>
         </div>
       </div>

@@ -68,7 +68,7 @@ export default function Contact() {
                 <Input placeholder="7X XX XX XX" className="rounded-l-none" />
               </div>
               <span className="text-[10px] leading-5 text-[#5E5B56]">
-                Indicatif Mali (+223) deja inclus — saisissez uniquement votre numero local.
+                Indicatif Mali (+223) déjà inclus — saisissez uniquement votre numero local.
               </span>
             </label>
             <label className={labelClass}>
@@ -93,7 +93,7 @@ export default function Contact() {
           <label className="flex items-start gap-3 text-sm leading-7 text-[#5E5B56]">
             <input required type="checkbox" className="mt-1 h-4 w-4 accent-[#C9A84C]" />
             <span>
-              J accepte que DS Conseil utilise ces informations pour repondre a ma demande, conformement a la{' '}
+              J'accepte que DS Conseil utilise ces informations pour repondre à ma demande, conformément à la{' '}
               <PrivacyPolicyLink />.
             </span>
           </label>
