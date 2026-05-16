@@ -39,6 +39,7 @@ export const publicNavLinks = [
 
 export const secondaryNavLinks = [
   { label: 'Analyse Dossier', to: '/pre-analysis' },
+  { label: 'Annonces', to: '/annonces' },
   { label: 'Avis', to: '/avis' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Contact', to: '/contact' },

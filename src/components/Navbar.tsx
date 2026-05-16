@@ -1,4 +1,4 @@
-import { ArrowRight, History, Home, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Shield, ShieldCheck, User, X } from 'lucide-react'
+import { ArrowRight, Building2, History, Home, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Shield, ShieldCheck, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { publicNavLinks, secondaryNavLinks } from '../data/services'
@@ -20,6 +20,7 @@ function mobileNavLinkClass(active: boolean) {
 
 const sidebarLinks = [
   { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard, adminOnly: true },
+  { label: 'Annonces', to: '/admin/annonces', icon: Building2, adminOnly: true },
   { label: 'Historique', to: '/admin/historique', icon: History, adminOnly: true },
   { label: 'Mon espace', to: '/mon-espace', icon: User },
   { label: 'Mes donnees', to: '/mes-donnees', icon: Shield, userOnly: true },

@@ -63,6 +63,21 @@ enum AccountDeletionRequestStatus {
   CANCELLED
 }
 
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ListingApplicationStatus {
+  INTERESTED
+  CONTACTED
+  VISIT_SCHEDULED
+  RESERVED
+  REJECTED
+  CANCELLED
+}
+
 model User {
   id            String         @id @default(uuid())
   firstName     String
@@ -79,6 +94,8 @@ model User {
   auditLogs                AuditLog[]
   accountDeletionRequests  AccountDeletionRequest[]
   reviews                  Review[]
+  listingsCreated          Listing[]                   @relation("ListingCreatedBy")
+  listingApplications      ListingApplication[]
 
   @@index([role])
   @@index([deletedAt])
@@ -95,6 +112,55 @@ model Review {
 
   @@index([rating])
   @@index([updatedAt])
+}
+
+model Listing {
+  id           String                 @id @default(uuid())
+  title        String
+  description  String
+  propertyType String
+  city         String
+  district     String?
+  address      String?
+  surface      Float?
+  price        Decimal?               @db.Decimal(14, 2)
+  priceLabel   String?
+  rooms        Int?
+  imageUrls    String[]               @default([])
+  status       ListingStatus          @default(DRAFT)
+  createdById  String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  createdBy    User?                  @relation("ListingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  applications ListingApplication[]
+
+  @@index([status])
+  @@index([city])
+  @@index([propertyType])
+  @@index([createdAt])
+}
+
+model ListingApplication {
+  id             String                   @id @default(uuid())
+  listingId      String
+  userId         String
+  budget         String
+  profession     String?
+  maritalStatus  MaritalStatus?
+  hasChildren    Boolean?
+  childrenCount  Int?
+  message        String?
+  status         ListingApplicationStatus @default(INTERESTED)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  listing        Listing                  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, userId])
+  @@index([listingId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model RefreshToken {

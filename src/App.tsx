@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminListings from './pages/AdminListings'
 import AdminUsers from './pages/AdminUsers'
 import Auth from './pages/Auth'
 import Chatbot from './pages/Chatbot'
@@ -10,6 +11,7 @@ import Contact from './pages/Contact'
 import FAQ from './pages/FAQ'
 import Privacy from './pages/Privacy'
 import Home from './pages/Home'
+import Listings from './pages/Listings'
 import PreAnalysis from './pages/PreAnalysis'
 import Reviews from './pages/Reviews'
 import ServiceDetail from './pages/ServiceDetail'
@@ -33,6 +35,7 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="avis" element={<Reviews />} />
+            <Route path="annonces" element={<Listings />} />
             <Route path="auth" element={<Auth />} />
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
@@ -56,6 +59,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/annonces"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminListings />
                 </ProtectedRoute>
               }
             />

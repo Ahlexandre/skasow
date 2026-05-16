@@ -1,9 +1,9 @@
 /**
- * Client HTTP partagé pour toutes les requêtes authentifiées vers le backend.
- * Lit le token JWT depuis le localStorage et l'injecte dans chaque requête.
+ * Client HTTP partage pour toutes les requetes authentifiees vers le backend.
+ * Lit le token JWT depuis le localStorage et l'injecte dans chaque requete.
  */
 
-const API_URL =
+export const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
   (import.meta.env.DEV ? 'http://localhost:3000' : '')
 
@@ -39,14 +39,26 @@ function getStoredTokens(): StoredTokens | null {
   }
 }
 
-function buildHeaders(init: RequestInit, token?: string) {
+function buildJsonHeaders(init: RequestInit, token?: string) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(init.headers as Record<string, string>),
   }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  return headers
+}
+
+function buildFormHeaders(init: RequestInit, token?: string) {
+  const headers: Record<string, string> = {
+    ...(init.headers as Record<string, string>),
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
 
   return headers
@@ -89,27 +101,21 @@ async function refreshTokens(): Promise<StoredTokens | null> {
   return nextTokens
 }
 
-async function sendRequest(path: string, init: RequestInit, token?: string) {
+async function sendJsonRequest(path: string, init: RequestInit, token?: string) {
   return fetch(`${API_URL}${path}`, {
     ...init,
-    headers: buildHeaders(init, token),
+    headers: buildJsonHeaders(init, token),
   })
 }
 
-export async function apiRequest<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
-  const tokens = getStoredTokens()
-  let response = await sendRequest(path, init, tokens?.accessToken)
+async function sendFormRequest(path: string, init: RequestInit, token?: string) {
+  return fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: buildFormHeaders(init, token),
+  })
+}
 
-  if (response.status === 401 && tokens?.refreshToken) {
-    const refreshed = await refreshTokens()
-    if (refreshed?.accessToken) {
-      response = await sendRequest(path, init, refreshed.accessToken)
-    }
-  }
-
+async function parseApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const error = await response.json().catch(() => null)
     const message = Array.isArray(error?.message)
@@ -119,8 +125,41 @@ export async function apiRequest<T>(
     throw new Error(message ?? `Erreur ${response.status}`)
   }
 
-  // 204 No Content : pas de corps à parser
   if (response.status === 204) return undefined as T
 
   return response.json() as Promise<T>
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const tokens = getStoredTokens()
+  let response = await sendJsonRequest(path, init, tokens?.accessToken)
+
+  if (response.status === 401 && tokens?.refreshToken) {
+    const refreshed = await refreshTokens()
+    if (refreshed?.accessToken) {
+      response = await sendJsonRequest(path, init, refreshed.accessToken)
+    }
+  }
+
+  return parseApiResponse<T>(response)
+}
+
+export async function apiFormRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const tokens = getStoredTokens()
+  let response = await sendFormRequest(path, init, tokens?.accessToken)
+
+  if (response.status === 401 && tokens?.refreshToken) {
+    const refreshed = await refreshTokens()
+    if (refreshed?.accessToken) {
+      response = await sendFormRequest(path, init, refreshed.accessToken)
+    }
+  }
+
+  return parseApiResponse<T>(response)
 }
