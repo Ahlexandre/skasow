@@ -13,12 +13,42 @@ export type AnalysisHistoryEntry = {
   deletedAt: string
 }
 
+export type AccountDeletionSnapshot = Record<string, unknown> & {
+  schemaVersion?: number
+  identity?: {
+    id?: string
+    firstName?: string
+    lastName?: string
+    fullName?: string
+  }
+  contact?: {
+    email?: string
+    phone?: string | null
+  }
+  account?: {
+    role?: string
+    createdAt?: string
+    updatedAt?: string
+  }
+  deletion?: {
+    reason?: string | null
+    requestedAt?: string | null
+    processedAt?: string | null
+    processedByAdminId?: string | null
+    deletedBy?: string
+  }
+  analyses?: {
+    count?: number
+    items?: Array<Record<string, unknown>>
+  }
+}
+
 export type AccountDeletionRequestEntry = {
   id: string
   userId: string
   reason: string | null
   status: 'PENDING' | 'PROCESSED' | 'CANCELLED'
-  userSnapshot: Record<string, unknown>
+  userSnapshot: AccountDeletionSnapshot
   createdAt: string
   processedAt: string | null
   processedByAdminId: string | null

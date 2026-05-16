@@ -12,8 +12,16 @@ const BUDGET_RANGE_DEFINITIONS: RangeDefinition[] = [
   { min: 35_000_000, max: 50_000_000, label: '35 000 000 — 50 000 000 FCFA' },
   { min: 50_000_000, max: 75_000_000, label: '50 000 000 — 75 000 000 FCFA' },
   { min: 75_000_000, max: 100_000_000, label: '75 000 000 — 100 000 000 FCFA' },
-  { min: 100_000_000, max: 150_000_000, label: '100 000 000 — 150 000 000 FCFA' },
-  { min: 150_000_000, max: 250_000_000, label: '150 000 000 — 250 000 000 FCFA' },
+  {
+    min: 100_000_000,
+    max: 150_000_000,
+    label: '100 000 000 — 150 000 000 FCFA',
+  },
+  {
+    min: 150_000_000,
+    max: 250_000_000,
+    label: '150 000 000 — 250 000 000 FCFA',
+  },
   { min: 250_000_000, label: 'Plus de 250 000 000 FCFA' },
   { label: 'Budget à définir avec DS Conseil' },
 ];
@@ -45,7 +53,10 @@ function resolveRangeNumericValue(range: RangeDefinition) {
   return undefined;
 }
 
-function parseRangeLabel(value: string | undefined, definitions: RangeDefinition[]) {
+function parseRangeLabel(
+  value: string | undefined,
+  definitions: RangeDefinition[],
+) {
   const label = value?.trim();
   if (!label) return undefined;
 

@@ -6,10 +6,7 @@ import {
 import { AnalysisStatus, Prisma, Role } from '@prisma/client';
 import { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  resolveBudgetRange,
-  resolveSurfaceRange,
-} from './analysis-range.util';
+import { resolveBudgetRange, resolveSurfaceRange } from './analysis-range.util';
 import { buildAnalysisSnapshot } from './analysis-history.util';
 import { AnalysisScoringService } from './analysis-scoring.service';
 import { CreateAnalysisDto } from './dto/create-analysis.dto';

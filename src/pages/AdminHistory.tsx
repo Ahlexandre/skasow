@@ -1,21 +1,46 @@
 import { History, UserX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { SectionHeader, pageShell } from '../components/ui'
 import {
   fetchAdminHistory,
   formatRequestStatus,
   type AccountDeletionRequestEntry,
+  type AccountDeletionSnapshot,
   type AnalysisHistoryEntry,
 } from '../services/adminHistoryService'
-import { SectionHeader, pageShell } from '../components/ui'
 
 type Tab = 'analyses' | 'accounts'
 
 function snapshotLabel(snapshot: Record<string, unknown>) {
   const project = snapshot.projectType ? String(snapshot.projectType) : 'Projet'
-  const city = snapshot.city ? ` — ${String(snapshot.city)}` : ''
+  const city = snapshot.city ? ` - ${String(snapshot.city)}` : ''
   const score = snapshot.score !== undefined ? ` (score ${String(snapshot.score)})` : ''
   return `${project}${city}${score}`
+}
+
+function legacyValue(snapshot: Record<string, unknown>, key: string) {
+  const value = snapshot[key]
+  return typeof value === 'string' ? value : ''
+}
+
+function accountSnapshotSummary(snapshot: AccountDeletionSnapshot) {
+  const firstName = snapshot.identity?.firstName ?? legacyValue(snapshot, 'firstName')
+  const lastName = snapshot.identity?.lastName ?? legacyValue(snapshot, 'lastName')
+  const fullName = snapshot.identity?.fullName ?? `${firstName} ${lastName}`.trim()
+  const email = snapshot.contact?.email ?? legacyValue(snapshot, 'email')
+  const phone = snapshot.contact?.phone ?? legacyValue(snapshot, 'phone')
+  const role = snapshot.account?.role ?? legacyValue(snapshot, 'role')
+  const analysesCount = typeof snapshot.analyses?.count === 'number' ? snapshot.analyses.count : undefined
+
+  return {
+    fullName: fullName || 'Utilisateur supprime',
+    email: email || 'Email non renseigne',
+    phone: phone || null,
+    role: role || 'Role non renseigne',
+    analysesCount,
+    deletedBy: snapshot.deletion?.deletedBy,
+  }
 }
 
 export default function AdminHistory() {
@@ -62,7 +87,7 @@ export default function AdminHistory() {
             (tab === 'accounts' ? 'bg-[#C9A84C] text-[#09090E]' : 'bg-white/5 text-[#9E9A94] hover:text-[#EDEAE4]')
           }
         >
-          Demandes compte ({accountRequests.filter((r) => r.status === 'PENDING').length} en attente)
+          Demandes compte ({accountRequests.filter((request) => request.status === 'PENDING').length} en attente)
         </button>
       </div>
 
@@ -84,14 +109,14 @@ export default function AdminHistory() {
                   <div>
                     <p className="flex items-center gap-2 text-sm font-medium text-[#EDEAE4]">
                       <History size={14} className="text-[#C9A84C]" />
-                      {snapshotLabel(entry.snapshot as Record<string, unknown>)}
+                      {snapshotLabel(entry.snapshot)}
                     </p>
                     <p className="mt-2 text-xs text-[#6B6760]">
-                      {entry.userFirstName} {entry.userLastName} — {entry.userEmail}
-                      {entry.userPhone ? ` — ${entry.userPhone}` : ''}
+                      {entry.userFirstName} {entry.userLastName} - {entry.userEmail}
+                      {entry.userPhone ? ` - ${entry.userPhone}` : ''}
                     </p>
                     <p className="mt-1 font-mono text-[10px] text-[#5E5B56]">
-                      ID {entry.originalAnalysisId} · supprime par {entry.deletedBy}
+                      ID {entry.originalAnalysisId} - supprime par {entry.deletedBy}
                     </p>
                   </div>
                   <time className="font-mono text-[10px] text-[#5E5B56]">
@@ -116,7 +141,9 @@ export default function AdminHistory() {
             <li className="text-sm text-[#6B6760]">Aucune demande de suppression.</li>
           ) : (
             accountRequests.map((request) => {
-              const snap = request.userSnapshot as Record<string, string>
+              const snap = request.userSnapshot
+              const summary = accountSnapshotSummary(snap)
+
               return (
                 <li
                   key={request.id}
@@ -127,8 +154,24 @@ export default function AdminHistory() {
                     <div>
                       <p className="flex items-center gap-2 text-sm font-medium text-[#EDEAE4]">
                         <UserX size={14} className="text-red-400" />
-                        {snap.firstName} {snap.lastName} — {snap.email}
+                        {summary.fullName} - {summary.email}
                       </p>
+                      <div className="mt-3 grid gap-2 text-xs text-[#6B6760] sm:grid-cols-2">
+                        <p>Telephone : {summary.phone || 'Non renseigne'}</p>
+                        <p>Role : {summary.role}</p>
+                        <p>
+                          Pre-analyses historisees:{' '}
+                          {summary.analysesCount !== undefined ? summary.analysesCount : 'Non renseigne'}
+                        </p>
+                        <p>
+                          Suppression:{' '}
+                          {summary.deletedBy === 'admin'
+                            ? 'Administrateur'
+                            : summary.deletedBy === 'user'
+                              ? 'Utilisateur'
+                              : 'Non renseignee'}
+                        </p>
+                      </div>
                       {request.reason ? (
                         <p className="mt-2 text-sm text-[#9E9A94]">Motif : {request.reason}</p>
                       ) : (
@@ -147,9 +190,15 @@ export default function AdminHistory() {
                       to="/admin/users"
                       className="mt-4 inline-flex text-xs font-semibold text-[#C9A84C] hover:underline"
                     >
-                      Traiter via gestion des utilisateurs →
+                      Traiter via gestion des utilisateurs
                     </Link>
                   )}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-xs text-[#C9A84C]">Voir le snapshot structure</summary>
+                    <pre className="mt-3 max-h-64 overflow-auto rounded-[10px] bg-black/30 p-3 text-[10px] leading-5 text-[#9E9A94]">
+                      {JSON.stringify(snap, null, 2)}
+                    </pre>
+                  </details>
                 </li>
               )
             })

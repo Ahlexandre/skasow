@@ -107,7 +107,7 @@ export default function Home() {
 
           {/* Texte */}
           <div>
-            <span className="label-mono">003 â€” Analyse IA</span>
+            <span className="label-mono">003 Analyse Dossier</span>
             <h2 className="title-display title-xl mt-5 text-[#EDEAE4]">
               Un diagnostic,<br />
               <em className="not-italic text-gold-gradient">pas un formulaire.</em>

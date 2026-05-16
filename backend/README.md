@@ -74,9 +74,10 @@ Routes protegees par JWT :
 
 - `GET /users/me`
 - `PATCH /users/me`
+- `POST /users/me/deletion-request`
 - `DELETE /users/me`
 
-La suppression anonymise les donnees personnelles du compte et revoque les refresh tokens actifs.
+La demande de suppression cree une entree traitable par un administrateur. La suppression directe conserve un snapshot structure de l'utilisateur (`identity`, `contact`, `account`, `deletion`, `analyses`) et de ses pre-analyses, anonymise ensuite les donnees personnelles du compte et revoque les refresh tokens actifs.
 
 ## Analyses
 
@@ -85,8 +86,10 @@ Routes protegees par JWT :
 - `POST /analyses`
 - `GET /analyses/my`
 - `GET /analyses/:id`
+- `PATCH /analyses/:id`
+- `DELETE /analyses/:id`
 
-Un utilisateur ne voit que ses analyses. Un administrateur peut consulter toutes les analyses.
+Un utilisateur ne voit que ses analyses. Un administrateur peut consulter toutes les analyses. Une suppression d'analyse cree un historique avant suppression definitive.
 
 Payload de creation :
 
@@ -111,7 +114,8 @@ Enums :
 - `urgency` : `LOW`, `MEDIUM`, `HIGH`
 - `maturityLevel` : `LOW`, `MEDIUM`, `HIGH`
 - `commercialPriority` : `LOW`, `MEDIUM`, `HIGH`
-- `status` : `SENT`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`
+- `status` : `SENT`, `FAVORITE`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`, `ARCHIVED`
+- `maritalStatus` : `SINGLE`, `MARRIED`, `PARTNERED`, `DIVORCED`, `WIDOWED`, `PREFER_NOT_TO_SAY`
 
 ## Scoring
 
@@ -136,11 +140,18 @@ Seuils :
 Routes protegees par JWT + role `ADMIN` :
 
 - `GET /admin/dashboard/stats`
+- `GET /admin/activity`
+- `GET /admin/history`
 - `GET /admin/analyses`
-- `GET /admin/analyses/:id`
-- `PATCH /admin/analyses/:id/status`
 - `GET /admin/analyses/top`
 - `GET /admin/analyses/by-service`
+- `GET /admin/analyses/:id`
+- `PATCH /admin/analyses/:id/status`
+- `DELETE /admin/analyses/:id`
+- `GET /admin/users`
+- `GET /admin/users/:id`
+- `PATCH /admin/users/:id/role`
+- `DELETE /admin/users/:id`
 
 Filtres disponibles sur `GET /admin/analyses` :
 
@@ -156,6 +167,10 @@ Filtres disponibles sur `GET /admin/analyses` :
 - `limit`
 
 `GET /admin/analyses/top` retourne les prospects a fort potentiel : score au moins 75, priorite `HIGH`, urgence `HIGH`, email et telephone presents.
+
+`DELETE /admin/analyses/:id` est limite aux analyses avec le statut `ARCHIVED` et conserve un snapshot dans l'historique avant suppression.
+
+Les routes utilisateurs admin permettent de filtrer les comptes, consulter le detail d'un utilisateur, modifier son role et anonymiser un compte. Un administrateur ne peut pas supprimer son propre compte ni retirer son propre role admin. Lors d'une suppression utilisateur, les pre-analyses actives sont copiees dans `AnalysisHistory` avant anonymisation.
 
 ## Chatbot
 
@@ -175,5 +190,7 @@ Les reponses sont mockees et aucune conversation n'est stockee. Le module est is
 - Refresh tokens hashes et revocables
 - Pas de logs contenant mots de passe, tokens ou messages complets
 - Consentement obligatoire sur la creation d'analyse
+- Historique interne des analyses supprimees et des pre-analyses liees aux comptes supprimes
+- Demandes de suppression de compte avec statut `PENDING`, `PROCESSED` ou `CANCELLED`
 - Suppression compte avec anonymisation
 - Controle d'acces objet sur les analyses

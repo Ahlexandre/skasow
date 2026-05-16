@@ -5,7 +5,6 @@
   Pencil,
   Save,
   Shield,
-  TrendingUp,
   UserRound,
   X,
 } from 'lucide-react'
@@ -125,10 +124,9 @@ export default function UserDashboard() {
         </Button>
       </div>
 
-      <div className="mb-10 grid grid-cols-3 gap-3">
+      <div className="mb-10 grid grid-cols-2 gap-3">
         {[
           { icon: FileCheck2, label: 'Pre-analyses', value: String(prospects.length) },
-          { icon: TrendingUp, label: 'Prioritaires', value: String(prospects.filter((p) => p.status === 'Prioritaire').length) },
           { icon: UserRound, label: 'À compléter', value: String(prospects.filter((p) => p.status === 'À compléter').length) },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-[16px] p-5" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>

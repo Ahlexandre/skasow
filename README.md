@@ -148,7 +148,9 @@ DS Conseil Immo est une application immobiliere orientee conseil. Elle permet a 
 - Scoring automatique du projet
 - Authentification inscription/connexion
 - Espace utilisateur protege
+- Gestion des donnees personnelles et demandes de suppression de compte
 - Tableau de bord administrateur protege par role `ADMIN`
+- Gestion admin des utilisateurs, statuts, suppressions et historique
 - Chatbot public avec reponses mockees
 - API documentee avec Swagger
 - Persistance PostgreSQL via Prisma
@@ -161,7 +163,8 @@ DS Conseil Immo est une application immobiliere orientee conseil. Elle permet a 
 4. Si l'utilisateur n'est pas connecte, il est redirige vers l'inscription ou la connexion.
 5. Une fois connecte, l'analyse est creee via l'API.
 6. L'utilisateur retrouve ses analyses dans `Mon espace`.
-7. Un administrateur consulte les analyses, les filtres, repere les prospects prioritaires et peut modifier leur statut.
+7. Il peut modifier ou supprimer une pre-analyse, ou demander la suppression de son compte depuis `Mes donnees`.
+8. Un administrateur consulte les analyses, les filtres, repere les prospects prioritaires, modifie les statuts et gere les utilisateurs.
 
 ## Routes frontend
 
@@ -173,9 +176,13 @@ DS Conseil Immo est une application immobiliere orientee conseil. Elle permet a 
 - `/chatbot` : assistant conversationnel
 - `/faq` : questions frequentes
 - `/contact` : contact
+- `/privacy` : politique de confidentialite
 - `/auth` : connexion et inscription
 - `/mon-espace` : espace utilisateur, protege
+- `/mes-donnees` : gestion des donnees utilisateur, protege
 - `/admin/dashboard` : tableau de bord admin, protege et reserve aux administrateurs
+- `/admin/users` : gestion des utilisateurs admin, protege et reserve aux administrateurs
+- `/admin/historique` : historique admin des suppressions et activites, protege et reserve aux administrateurs
 
 ## Architecture frontend
 
@@ -197,7 +204,7 @@ Services frontend importants :
 
 - `authService.ts` : inscription, connexion, deconnexion
 - `apiClient.ts` : client HTTP authentifie, injection du token JWT
-- `prospectService.ts` : creation et lecture des analyses
+- `prospectService.ts` : creation, lecture, modification, suppression et statuts des analyses
 - `analysisService.ts` : scoring local et recommandations
 - `chatbotService.ts` : reponse mockee du chatbot
 
@@ -208,9 +215,9 @@ Le backend est construit avec NestJS, TypeScript, Prisma et PostgreSQL.
 Modules principaux :
 
 - `auth` : inscription, connexion, refresh token, logout, utilisateur courant
-- `users` : profil utilisateur et suppression/anonymisation
-- `analyses` : creation et consultation des analyses utilisateur
-- `admin` : statistiques, filtres, detail et changement de statut
+- `users` : profil utilisateur, demande de suppression et anonymisation
+- `analyses` : creation, consultation, modification et suppression des analyses utilisateur
+- `admin` : statistiques, filtres, detail, statuts, utilisateurs, historique et suppressions
 - `chatbot` : endpoint public pour messages et suggestions
 - `health` : healthcheck
 - `prisma` : service Prisma partage
@@ -247,9 +254,10 @@ Routes protegees par JWT :
 
 - `GET /users/me`
 - `PATCH /users/me`
+- `POST /users/me/deletion-request`
 - `DELETE /users/me`
 
-La suppression anonymise les donnees personnelles et revoque les refresh tokens actifs.
+La demande de suppression est historisee pour traitement admin. La suppression directe conserve un snapshot structure de l'utilisateur (`identity`, `contact`, `account`, `deletion`, `analyses`) et de ses pre-analyses, anonymise ensuite les donnees personnelles et revoque les refresh tokens actifs.
 
 ### Analyses
 
@@ -258,6 +266,8 @@ Routes protegees par JWT :
 - `POST /analyses`
 - `GET /analyses/my`
 - `GET /analyses/:id`
+- `PATCH /analyses/:id`
+- `DELETE /analyses/:id`
 
 Payload type :
 
@@ -281,11 +291,18 @@ Payload type :
 Routes protegees par JWT et role `ADMIN` :
 
 - `GET /admin/dashboard/stats`
+- `GET /admin/activity`
+- `GET /admin/history`
 - `GET /admin/analyses`
-- `GET /admin/analyses/:id`
-- `PATCH /admin/analyses/:id/status`
 - `GET /admin/analyses/top`
 - `GET /admin/analyses/by-service`
+- `GET /admin/analyses/:id`
+- `PATCH /admin/analyses/:id/status`
+- `DELETE /admin/analyses/:id`
+- `GET /admin/users`
+- `GET /admin/users/:id`
+- `PATCH /admin/users/:id/role`
+- `DELETE /admin/users/:id`
 
 Filtres disponibles sur `GET /admin/analyses` :
 
@@ -318,6 +335,8 @@ Modeles principaux :
 - `User` : compte, role, informations de profil
 - `RefreshToken` : refresh tokens hashes, expirables et revocables
 - `Analysis` : analyse immobiliere et scoring commercial
+- `AnalysisHistory` : historique des analyses supprimees
+- `AccountDeletionRequest` : demandes de suppression de compte
 - `AuditLog` : journalisation des actions sensibles
 
 Enums principaux :
@@ -327,7 +346,9 @@ Enums principaux :
 - `Urgency` : `LOW`, `MEDIUM`, `HIGH`
 - `MaturityLevel` : `LOW`, `MEDIUM`, `HIGH`
 - `CommercialPriority` : `LOW`, `MEDIUM`, `HIGH`
-- `AnalysisStatus` : `SENT`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`
+- `AnalysisStatus` : `SENT`, `FAVORITE`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`, `ARCHIVED`
+- `MaritalStatus` : `SINGLE`, `MARRIED`, `PARTNERED`, `DIVORCED`, `WIDOWED`, `PREFER_NOT_TO_SAY`
+- `AccountDeletionRequestStatus` : `PENDING`, `PROCESSED`, `CANCELLED`
 
 ## Scoring des analyses
 
@@ -363,6 +384,8 @@ Seuils :
 - Guards JWT et roles admin
 - Controle d'acces objet sur les analyses
 - Consentement obligatoire avant creation d'une analyse
+- Historisation des suppressions d'analyses et des pre-analyses liees aux comptes supprimes
+- Demande de suppression de compte avec traitement admin
 - Anonymisation lors de la suppression de compte
 
 ## Configuration frontend/backend

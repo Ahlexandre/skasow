@@ -1,8 +1,8 @@
 import { ArrowLeft, Shield, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
-import { Button, EmptyState, Textarea, labelClass, primaryButton } from '../components/ui'
+import { Button, EmptyState, Input, Textarea, labelClass, primaryButton } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
 import {
   accountDeletionReasons,
@@ -10,14 +10,24 @@ import {
   type AccountDeletionReasonId,
 } from '../data/accountDeletionReasons'
 import { deleteMyProspect, fetchMyProspects } from '../services/prospectService'
-import { requestAccountDeletion } from '../services/userDataService'
+import { requestAccountDeletion, updateMyData } from '../services/userDataService'
 import type { Prospect } from '../types/prospect'
 
 export default function MyData() {
-  const { currentUser } = useAuth()
+  const { currentUser, updateCurrentUser } = useAuth()
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [profileForm, setProfileForm] = useState({
+    firstName: currentUser?.firstName ?? '',
+    lastName: currentUser?.lastName ?? '',
+    email: currentUser?.email ?? '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [profileMessage, setProfileMessage] = useState('')
   const [reasonId, setReasonId] = useState<AccountDeletionReasonId | ''>('')
   const [otherDetail, setOtherDetail] = useState('')
   const [isSubmittingAccount, setIsSubmittingAccount] = useState(false)
@@ -31,6 +41,59 @@ export default function MyData() {
       .catch(() => setProspects([]))
       .finally(() => setIsLoading(false))
   }, [currentUser])
+
+  const updateProfileField = (field: keyof typeof profileForm, value: string) => {
+    setProfileForm((current) => ({ ...current, [field]: value }))
+    setProfileMessage('')
+    setError('')
+  }
+
+  const submitProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!profileForm.firstName.trim() || !profileForm.lastName.trim() || !profileForm.email.trim()) {
+      setError('Nom, prenom et email sont obligatoires.')
+      return
+    }
+
+    if (profileForm.newPassword || profileForm.confirmPassword || profileForm.currentPassword) {
+      if (profileForm.newPassword !== profileForm.confirmPassword) {
+        setError('Les nouveaux mots de passe ne correspondent pas.')
+        return
+      }
+      if (!profileForm.currentPassword) {
+        setError('Le mot de passe actuel est requis pour changer de mot de passe.')
+        return
+      }
+    }
+
+    setIsSavingProfile(true)
+    setError('')
+    setProfileMessage('')
+    try {
+      const user = await updateMyData({
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        email: profileForm.email,
+        currentPassword: profileForm.currentPassword || undefined,
+        newPassword: profileForm.newPassword || undefined,
+      })
+      updateCurrentUser(user)
+      setProfileForm((current) => ({
+        ...current,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      }))
+      setProfileMessage('Vos informations ont ete mises a jour.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Mise a jour impossible.')
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
 
   const deleteProspect = async (id: string) => {
     const confirmed = window.confirm(
@@ -94,7 +157,72 @@ export default function MyData() {
       </header>
 
       {error ? <p className="mb-6 rounded-[14px] border border-red-500/20 bg-red-500/8 p-4 text-sm text-red-300">{error}</p> : null}
+      {profileMessage ? <p className="mb-6 rounded-[14px] border border-emerald-500/20 bg-emerald-500/8 p-4 text-sm text-emerald-300">{profileMessage}</p> : null}
       {accountMessage ? <p className="mb-6 rounded-[14px] border border-emerald-500/20 bg-emerald-500/8 p-4 text-sm text-emerald-300">{accountMessage}</p> : null}
+
+      <section className="mb-12 rounded-[18px] p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <h2 className="font-display text-xl text-[#F0EDE8]">Informations du compte</h2>
+        <form onSubmit={(event) => void submitProfile(event)} className="mt-6 grid gap-5 md:grid-cols-2">
+          <label className={labelClass}>
+            Prenom
+            <Input
+              required
+              value={profileForm.firstName}
+              onChange={(event) => updateProfileField('firstName', event.target.value)}
+            />
+          </label>
+          <label className={labelClass}>
+            Nom
+            <Input
+              required
+              value={profileForm.lastName}
+              onChange={(event) => updateProfileField('lastName', event.target.value)}
+            />
+          </label>
+          <label className={labelClass + ' md:col-span-2'}>
+            Email
+            <Input
+              required
+              type="email"
+              value={profileForm.email}
+              onChange={(event) => updateProfileField('email', event.target.value)}
+            />
+          </label>
+          <label className={labelClass}>
+            Mot de passe actuel
+            <Input
+              type="password"
+              value={profileForm.currentPassword}
+              onChange={(event) => updateProfileField('currentPassword', event.target.value)}
+              placeholder="Requis pour changer le mot de passe"
+            />
+          </label>
+          <label className={labelClass}>
+            Nouveau mot de passe
+            <Input
+              type="password"
+              minLength={8}
+              value={profileForm.newPassword}
+              onChange={(event) => updateProfileField('newPassword', event.target.value)}
+              placeholder="8 caracteres minimum"
+            />
+          </label>
+          <label className={labelClass}>
+            Confirmation du nouveau mot de passe
+            <Input
+              type="password"
+              minLength={8}
+              value={profileForm.confirmPassword}
+              onChange={(event) => updateProfileField('confirmPassword', event.target.value)}
+            />
+          </label>
+          <div className="flex items-end">
+            <Button type="submit" disabled={isSavingProfile}>
+              {isSavingProfile ? 'Enregistrement...' : 'Enregistrer mes informations'}
+            </Button>
+          </div>
+        </form>
+      </section>
 
       <section className="mb-12">
         <h2 className="mb-4 font-display text-xl text-[#F0EDE8]">Mes pre-analyses</h2>

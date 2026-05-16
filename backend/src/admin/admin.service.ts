@@ -20,6 +20,7 @@ import {
 import { buildAnalysisSnapshot } from '../analyses/analysis-history.util';
 import { getPagination, paginatedResponse } from '../common/utils/pagination';
 import { PrismaService } from '../prisma/prisma.service';
+import { buildAccountDeletionSnapshot } from '../users/user-snapshot.util';
 import { AdminAnalysisQueryDto } from './dto/admin-analysis-query.dto';
 import { AdminUserQueryDto } from './dto/admin-user-query.dto';
 import { AdminAnalysisStatus } from './dto/update-analysis-status.dto';
@@ -344,7 +345,16 @@ export class AdminService {
   async deleteUser(id: string, currentAdminId: string) {
     const user = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
-      select: { id: true, email: true },
+      include: {
+        analyses: {
+          include: analysisWithUserInclude,
+        },
+        accountDeletionRequests: {
+          where: { status: AccountDeletionRequestStatus.PENDING },
+          select: { createdAt: true, reason: true },
+          take: 1,
+        },
+      },
     });
 
     if (!user) {
@@ -356,19 +366,56 @@ export class AdminService {
     }
 
     const now = new Date();
+    const pendingDeletionRequest = user.accountDeletionRequests[0];
+    const userSnapshot = buildAccountDeletionSnapshot(user, {
+      reason:
+        pendingDeletionRequest?.reason ??
+        'Suppression directe du compte par un administrateur.',
+      requestedAt: pendingDeletionRequest?.createdAt,
+      processedAt: now,
+      processedByAdminId: currentAdminId,
+      deletedBy: 'admin',
+      analyses: user.analyses,
+    });
 
-    await this.prisma.$transaction([
-      this.prisma.accountDeletionRequest.updateMany({
-        where: {
-          userId: id,
-          status: AccountDeletionRequestStatus.PENDING,
-        },
-        data: {
-          status: AccountDeletionRequestStatus.PROCESSED,
-          processedAt: now,
-          processedByAdminId: currentAdminId,
-        },
-      }),
+    const operations: Prisma.PrismaPromise<unknown>[] = [
+      ...user.analyses.map((analysis) =>
+        this.prisma.analysisHistory.create({
+          data: {
+            originalAnalysisId: analysis.id,
+            userId: analysis.userId,
+            userEmail: analysis.user.email,
+            userFirstName: analysis.user.firstName,
+            userLastName: analysis.user.lastName,
+            userPhone: analysis.user.phone,
+            snapshot: buildAnalysisSnapshot(analysis),
+            deletedBy: 'admin-user',
+          },
+        }),
+      ),
+      pendingDeletionRequest
+        ? this.prisma.accountDeletionRequest.updateMany({
+            where: {
+              userId: id,
+              status: AccountDeletionRequestStatus.PENDING,
+            },
+            data: {
+              status: AccountDeletionRequestStatus.PROCESSED,
+              userSnapshot,
+              processedAt: now,
+              processedByAdminId: currentAdminId,
+            },
+          })
+        : this.prisma.accountDeletionRequest.create({
+            data: {
+              userId: id,
+              reason: 'Suppression directe du compte par un administrateur.',
+              status: AccountDeletionRequestStatus.PROCESSED,
+              userSnapshot,
+              processedAt: now,
+              processedByAdminId: currentAdminId,
+            },
+          }),
       this.prisma.refreshToken.updateMany({
         where: { userId: id, revokedAt: null },
         data: { revokedAt: now },
@@ -391,10 +438,16 @@ export class AdminService {
           action: 'ADMIN_USER_DELETE',
           entity: 'User',
           entityId: id,
-          metadata: { email: user.email },
+          metadata: {
+            email: user.email,
+            userSnapshot,
+            analysisSnapshotsCount: user.analyses.length,
+          },
         },
       }),
-    ]);
+    ];
+
+    await this.prisma.$transaction(operations);
 
     return { success: true };
   }

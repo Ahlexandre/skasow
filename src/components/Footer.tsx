@@ -5,8 +5,12 @@ export default function Footer() {
     <footer className="border-t border-white/5 px-6 py-10 lg:px-16">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/" className="title-display text-base text-[#EDEAE4] transition-colors hover:text-[#C9A84C]">
-            DS Conseil
+          <Link to="/" className="block transition-opacity hover:opacity-85" aria-label="DS Conseil Immobilier">
+            <img
+              src="/logo_ds_conseil.png"
+              alt="DS Conseil Immobilier"
+              className="h-14 w-auto max-w-[130px] rounded-[8px] object-contain"
+            />
           </Link>
           <span className="label-mono">Bamako, Mali</span>
         </div>

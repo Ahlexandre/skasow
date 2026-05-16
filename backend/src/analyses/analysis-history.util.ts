@@ -1,4 +1,4 @@
-import { AnalysisWithUser } from './analyses.service';
+import type { AnalysisWithUser } from './analyses.service';
 
 export function buildAnalysisSnapshot(analysis: AnalysisWithUser) {
   return {

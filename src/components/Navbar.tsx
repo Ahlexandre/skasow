@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, History, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Shield, ShieldCheck, User, X } from 'lucide-react'
+import { ArrowRight, History, Home, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Shield, ShieldCheck, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { publicNavLinks, secondaryNavLinks } from '../data/services'
@@ -19,7 +19,7 @@ function mobileNavLinkClass(active: boolean) {
 }
 
 const sidebarLinks = [
-  { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard },
+  { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard, adminOnly: true },
   { label: 'Historique', to: '/admin/historique', icon: History, adminOnly: true },
   { label: 'Mon espace', to: '/mon-espace', icon: User },
   { label: 'Mes donnees', to: '/mes-donnees', icon: Shield, userOnly: true },
@@ -63,11 +63,19 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
   if (sidebar) {
     return (
       <aside className="hidden w-[210px] shrink-0 flex-col border-r border-white/5 bg-[#09090E] lg:flex" style={{ minHeight: '100vh' }}>
-        <Link to="/" className="flex items-center gap-3 px-5 py-6 transition-opacity hover:opacity-70">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#C9A84C] text-[#09090E]">
-            <Building2 size={15} strokeWidth={2} />
-          </span>
-          <span className="text-sm font-semibold text-[#EDEAE4]">DS Conseil</span>
+        <Link to="/" className="mx-3 mt-4 flex justify-center transition-opacity hover:opacity-85" aria-label="DS Conseil Immobilier">
+          <img
+            src="/logo_ds_conseil.png"
+            alt="DS Conseil Immobilier"
+            className="h-20 w-auto max-w-[150px] rounded-[10px] object-contain"
+          />
+        </Link>
+        <Link
+          to="/"
+          className="mx-3 mb-4 mt-3 flex items-center justify-center gap-2 rounded-[10px] border border-white/8 bg-white/[0.03] px-3 py-2.5 text-sm font-medium text-[#EDEAE4] transition hover:border-[#C9A84C]/25 hover:bg-[#C9A84C]/8 hover:text-[#C9A84C]"
+        >
+          <Home size={15} strokeWidth={1.9} />
+          Retour à l'accueil
         </Link>
         <div className="h-px bg-white/5" />
         <nav className="flex flex-1 flex-col gap-0.5 px-3 py-4">
@@ -113,9 +121,12 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
       style={{ background: 'rgba(9,9,14,0.88)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-16">
 
-        <Link to="/" className="group flex items-baseline gap-2.5" onClick={() => setIsOpen(false)}>
-          <span className="title-display text-lg text-[#EDEAE4] transition-colors group-hover:text-[#C9A84C]">DS</span>
-          <span className="text-sm text-[#5E5B56]">Conseil Immobilier</span>
+        <Link to="/" className="group flex items-center" onClick={() => setIsOpen(false)} aria-label="DS Conseil Immobilier">
+          <img
+            src="/logo_ds_conseil.png"
+            alt="DS Conseil Immobilier"
+            className="h-20 w-auto max-w-[200px] rounded-[8px] object-contain transition-opacity group-hover:opacity-85"
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 xl:gap-8 lg:flex">
