@@ -27,6 +27,7 @@ type PrivacySection = {
 const retentionRows = [
   { label: 'Compte utilisateur actif', value: 'Conserve tant que le compte existe' },
   { label: 'Pre-analyses immobilieres', value: '24 mois' },
+  { label: 'Historique apres suppression des donnees', value: '3 ans' },
   { label: 'Logs techniques', value: '30 jours' },
   { label: 'Conversations chatbot', value: 'Non conservees' },
 ] as const
@@ -129,6 +130,11 @@ const sections: PrivacySection[] = [
         <p className={bodyText}>
           La suppression'est possible depuis votre espace utilisateur (section « Mes donnees ») ou
           en adressant une demande à DS Conseil via la page Contact.
+        </p>
+        <p className={bodyText}>
+          Apres suppression, DS Conseil conserve un historique interne pendant 3 ans afin d'assurer
+          le suivi administratif, la tracabilite des demandes et la protection contre les erreurs ou
+          contestations. Cet historique est reserve aux administrateurs autorises.
         </p>
       </div>
     ),

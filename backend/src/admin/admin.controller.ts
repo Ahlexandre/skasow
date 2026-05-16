@@ -44,6 +44,22 @@ export class AdminController {
     return this.adminService.getHistory();
   }
 
+  @Delete('history/analyses/:id')
+  deleteAnalysisHistory(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.adminService.deleteAnalysisHistory(id, currentUser.id);
+  }
+
+  @Delete('history/accounts/:id')
+  deleteAccountDeletionHistory(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.adminService.deleteAccountDeletionHistory(id, currentUser.id);
+  }
+
   @Get('analyses')
   getAnalyses(@Query() query: AdminAnalysisQueryDto) {
     return this.adminService.findAnalyses(query);

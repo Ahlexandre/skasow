@@ -79,6 +79,18 @@ export async function fetchAdminHistory(): Promise<AdminHistoryResponse> {
   return apiRequest<AdminHistoryResponse>('/admin/history')
 }
 
+export async function deleteAdminAnalysisHistory(id: string): Promise<void> {
+  await apiRequest<{ success: boolean }>(`/admin/history/analyses/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function deleteAdminAccountDeletionHistory(id: string): Promise<void> {
+  await apiRequest<{ success: boolean }>(`/admin/history/accounts/${id}`, {
+    method: 'DELETE',
+  })
+}
+
 export function formatRequestStatus(status: AccountDeletionRequestEntry['status']) {
   const labels = {
     PENDING: 'En attente',

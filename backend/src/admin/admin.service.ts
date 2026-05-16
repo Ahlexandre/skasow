@@ -564,6 +564,66 @@ export class AdminService {
     return history.recentActivity;
   }
 
+  async deleteAnalysisHistory(id: string, currentAdminId: string) {
+    const entry = await this.prisma.analysisHistory.findUnique({
+      where: { id },
+    });
+
+    if (!entry) {
+      throw new NotFoundException('Analysis history not found');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.analysisHistory.delete({ where: { id } }),
+      this.prisma.auditLog.create({
+        data: {
+          userId: currentAdminId,
+          action: 'ADMIN_ANALYSIS_HISTORY_PERMANENT_DELETE',
+          entity: 'AnalysisHistory',
+          entityId: id,
+          metadata: {
+            originalAnalysisId: entry.originalAnalysisId,
+            userId: entry.userId,
+            userEmail: entry.userEmail,
+            deletedAt: entry.deletedAt,
+          },
+        },
+      }),
+    ]);
+
+    return { success: true };
+  }
+
+  async deleteAccountDeletionHistory(id: string, currentAdminId: string) {
+    const entry = await this.prisma.accountDeletionRequest.findUnique({
+      where: { id },
+    });
+
+    if (!entry) {
+      throw new NotFoundException('Account deletion history not found');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.accountDeletionRequest.delete({ where: { id } }),
+      this.prisma.auditLog.create({
+        data: {
+          userId: currentAdminId,
+          action: 'ADMIN_ACCOUNT_DELETION_HISTORY_PERMANENT_DELETE',
+          entity: 'AccountDeletionRequest',
+          entityId: id,
+          metadata: {
+            userId: entry.userId,
+            status: entry.status,
+            createdAt: entry.createdAt,
+            processedAt: entry.processedAt,
+          },
+        },
+      }),
+    ]);
+
+    return { success: true };
+  }
+
   async getHistory() {
     const [analysisHistories, accountDeletionRequests, recentActivity] =
       await Promise.all([
