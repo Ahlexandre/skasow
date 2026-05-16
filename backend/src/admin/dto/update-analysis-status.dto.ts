@@ -1,9 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AnalysisStatus } from '@prisma/client';
-import { IsEnum } from 'class-validator';
+import { IsIn } from 'class-validator';
+
+export const ADMIN_ANALYSIS_STATUSES = [
+  'SENT',
+  'FAVORITE',
+  'IN_PROGRESS',
+  'PRIORITY',
+  'INCOMPLETE',
+  'PROCESSED',
+  'TO_RECONTACT',
+  'ARCHIVED',
+] as const;
+
+export type AdminAnalysisStatus = (typeof ADMIN_ANALYSIS_STATUSES)[number];
 
 export class UpdateAnalysisStatusDto {
-  @ApiProperty({ enum: AnalysisStatus })
-  @IsEnum(AnalysisStatus)
-  status: AnalysisStatus;
+  @ApiProperty({ enum: ADMIN_ANALYSIS_STATUSES })
+  @IsIn(ADMIN_ANALYSIS_STATUSES)
+  status: AdminAnalysisStatus;
 }

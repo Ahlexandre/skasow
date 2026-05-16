@@ -421,7 +421,7 @@ export default function PreAnalysis() {
 
       {prospect && result && (
         <div className="mt-10">
-          <AnalysisCard prospect={prospect} />
+          <AnalysisCard prospect={prospect} showNextAction={false} />
         </div>
       )}
     </div>

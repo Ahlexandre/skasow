@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, Settings, User, X } from 'lucide-react'
+import { ArrowRight, Building2, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, ShieldCheck, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/useAuth'
@@ -13,9 +13,9 @@ const publicLinks = [
 const sidebarLinks = [
   { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Mon espace',  to: '/mon-espace',       icon: User },
+  { label: 'Utilisateurs', to: '/admin/users',      icon: ShieldCheck, adminOnly: true },
   { label: 'Chatbot',     to: '/chatbot',           icon: MessageCircle },
   { label: 'Contact',     to: '/contact',           icon: Phone },
-  { label: 'Parametres',  to: '/admin/dashboard',   icon: Settings },
 ]
 
 type NavbarProps = { sidebar?: boolean }
@@ -40,7 +40,9 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
         </Link>
         <div className="h-px bg-white/5" />
         <nav className="flex flex-1 flex-col gap-0.5 px-3 py-4">
-          {sidebarLinks.map(({ label, to, icon: Icon }) => {
+          {sidebarLinks
+            .filter((link) => !link.adminOnly || isAdmin)
+            .map(({ label, to, icon: Icon }) => {
             const active = location.pathname === to
             return (
               <Link key={label} to={to}

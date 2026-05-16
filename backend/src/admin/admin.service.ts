@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AnalysisStatus,
   CommercialPriority,
   Prisma,
   ProjectType,
+  Role,
   Urgency,
 } from '@prisma/client';
 import {
@@ -13,6 +19,8 @@ import {
 import { getPagination, paginatedResponse } from '../common/utils/pagination';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminAnalysisQueryDto } from './dto/admin-analysis-query.dto';
+import { AdminUserQueryDto } from './dto/admin-user-query.dto';
+import { AdminAnalysisStatus } from './dto/update-analysis-status.dto';
 
 @Injectable()
 export class AdminService {
@@ -82,7 +90,6 @@ export class AdminService {
         'Prospects prioritaires',
         'Dossiers a completer',
         'Conversations chatbot',
-        'Parametres',
       ],
     };
   }
@@ -159,7 +166,7 @@ export class AdminService {
     return this.analysesService.serializeAnalysis(analysis);
   }
 
-  async updateStatus(id: string, status: AnalysisStatus) {
+  async updateStatus(id: string, status: AdminAnalysisStatus) {
     const existingAnalysis = await this.prisma.analysis.findUnique({
       where: { id },
       select: { id: true },
@@ -186,6 +193,37 @@ export class AdminService {
     return this.analysesService.serializeAnalysis(analysis);
   }
 
+  async deleteAnalysis(id: string, currentAdminId: string) {
+    const existingAnalysis = await this.prisma.analysis.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+
+    if (!existingAnalysis) {
+      throw new NotFoundException('Analysis not found');
+    }
+
+    if (existingAnalysis.status !== AnalysisStatus.ARCHIVED) {
+      throw new BadRequestException('Only archived analyses can be deleted');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.analysis.delete({
+        where: { id },
+      }),
+      this.prisma.auditLog.create({
+        data: {
+          userId: currentAdminId,
+          action: 'ADMIN_ANALYSIS_DELETE',
+          entity: 'Analysis',
+          entityId: id,
+        },
+      }),
+    ]);
+
+    return { success: true };
+  }
+
   async getAnalysesByService() {
     const rows = await this.prisma.analysis.groupBy({
       by: ['recommendedService'],
@@ -197,6 +235,140 @@ export class AdminService {
       service: row.recommendedService,
       count: row._count._all,
     }));
+  }
+
+  async findUsers(query: AdminUserQueryDto) {
+    const { skip, take, page, limit } = getPagination(query.page, query.limit);
+    const where = this.buildUserWhere(query);
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: this.adminUserSelect(),
+        orderBy: { [query.sortBy]: query.sortOrder },
+        skip,
+        take,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return paginatedResponse(
+      items.map((item) => this.serializeAdminUser(item)),
+      total,
+      page,
+      limit,
+    );
+  }
+
+  async findUser(id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      select: {
+        ...this.adminUserSelect(),
+        analyses: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            projectType: true,
+            city: true,
+            district: true,
+            score: true,
+            commercialPriority: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.serializeAdminUser(user);
+  }
+
+  async updateUserRole(id: string, role: Role, currentAdminId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (id === currentAdminId && role !== Role.ADMIN) {
+      throw new ForbiddenException('You cannot remove your own admin role');
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { role },
+      select: this.adminUserSelect(),
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: currentAdminId,
+        action: 'ADMIN_USER_ROLE_UPDATE',
+        entity: 'User',
+        entityId: id,
+        metadata: {
+          previousRole: user.role,
+          nextRole: role,
+        },
+      },
+    });
+
+    return this.serializeAdminUser(updatedUser);
+  }
+
+  async deleteUser(id: string, currentAdminId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (id === currentAdminId) {
+      throw new ForbiddenException('You cannot delete your own account');
+    }
+
+    const now = new Date();
+
+    await this.prisma.$transaction([
+      this.prisma.refreshToken.updateMany({
+        where: { userId: id, revokedAt: null },
+        data: { revokedAt: now },
+      }),
+      this.prisma.user.update({
+        where: { id },
+        data: {
+          firstName: 'Deleted',
+          lastName: 'User',
+          email: `deleted-admin-${id}@ds-conseil.local`,
+          phone: null,
+          passwordHash: 'deleted',
+          role: Role.USER,
+          deletedAt: now,
+        },
+      }),
+      this.prisma.auditLog.create({
+        data: {
+          userId: currentAdminId,
+          action: 'ADMIN_USER_DELETE',
+          entity: 'User',
+          entityId: id,
+          metadata: { email: user.email },
+        },
+      }),
+    ]);
+
+    return { success: true };
   }
 
   private buildWhere(query: AdminAnalysisQueryDto): Prisma.AnalysisWhereInput {
@@ -223,5 +395,86 @@ export class AdminService {
     }
 
     return where;
+  }
+
+  private buildUserWhere(query: AdminUserQueryDto): Prisma.UserWhereInput {
+    const where: Prisma.UserWhereInput = { deletedAt: null };
+
+    if (query.role) where.role = query.role;
+
+    if (query.search?.trim()) {
+      const search = query.search.trim();
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return where;
+  }
+
+  private adminUserSelect() {
+    return {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      _count: {
+        select: {
+          analyses: true,
+          refreshTokens: {
+            where: {
+              revokedAt: null,
+              expiresAt: { gt: new Date() },
+            },
+          },
+        },
+      },
+    } satisfies Prisma.UserSelect;
+  }
+
+  private serializeAdminUser(user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string | null;
+    role: Role;
+    createdAt: Date;
+    updatedAt: Date;
+    _count: {
+      analyses: number;
+      refreshTokens: number;
+    };
+    analyses?: Array<{
+      id: string;
+      projectType: ProjectType;
+      city: string;
+      district: string | null;
+      score: number;
+      commercialPriority: CommercialPriority;
+      status: AnalysisStatus;
+      createdAt: Date;
+    }>;
+  }) {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      analysesCount: user._count.analyses,
+      activeSessionsCount: user._count.refreshTokens,
+      analyses: user.analyses ?? [],
+    };
   }
 }

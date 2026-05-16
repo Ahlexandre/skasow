@@ -123,8 +123,8 @@ export class AuthService {
       role: user.role,
     };
     const accessToken = await this.jwtService.signAsync(payload);
-    const refreshToken = randomBytes(64).toString('base64url');
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+    const refreshTokenSecret = randomBytes(64).toString('base64url');
+    const refreshTokenHash = await bcrypt.hash(refreshTokenSecret, 12);
     const expiresInDays = this.config.get<number>(
       'JWT_REFRESH_EXPIRES_IN_DAYS',
       30,
@@ -133,7 +133,7 @@ export class AuthService {
       Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
     );
 
-    await this.prisma.refreshToken.create({
+    const tokenRecord = await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash: refreshTokenHash,
@@ -145,12 +145,35 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken: `${tokenRecord.id}.${refreshTokenSecret}`,
       user: this.toPublicUser(user),
     };
   }
 
   private async findRefreshToken(refreshToken: string, userId?: string) {
+    const [tokenId, tokenSecret] = refreshToken.split('.', 2);
+
+    if (tokenId && tokenSecret) {
+      const tokenRecord = await this.prisma.refreshToken.findFirst({
+        where: {
+          id: tokenId,
+          userId,
+          revokedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        include: { user: true },
+      });
+
+      if (
+        tokenRecord &&
+        (await bcrypt.compare(tokenSecret, tokenRecord.tokenHash))
+      ) {
+        return tokenRecord;
+      }
+
+      return null;
+    }
+
     const tokenRecords = await this.prisma.refreshToken.findMany({
       where: {
         userId,
@@ -159,7 +182,6 @@ export class AuthService {
       },
       include: { user: true },
       orderBy: { createdAt: 'desc' },
-      take: 50,
     });
 
     for (const tokenRecord of tokenRecords) {

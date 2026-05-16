@@ -1,7 +1,32 @@
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { inputClass, selectClass } from './ui'
+import type { ProspectStatus } from '../types/prospect'
 
-export type ProspectFilters = { query: string; projectType: string; maturity: string; priority: string; minScore: string; bestOnly: boolean }
+export type ProspectSortBy =
+  | 'createdAt'
+  | 'score'
+  | 'projectType'
+  | 'location'
+  | 'budget'
+  | 'priority'
+  | 'maturity'
+  | 'service'
+  | 'status'
+  | 'name'
+
+export type ProspectSortOrder = 'asc' | 'desc'
+
+export type ProspectFilters = {
+  query: string
+  projectType: string
+  status: ProspectStatus | ''
+  maturity: string
+  priority: string
+  minScore: string
+  bestOnly: boolean
+  sortBy: ProspectSortBy
+  sortOrder: ProspectSortOrder
+}
 type FilterBarProps = { filters: ProspectFilters; onChange: (filters: ProspectFilters) => void }
 
 export default function FilterBar({ filters, onChange }: FilterBarProps) {
@@ -12,7 +37,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <SlidersHorizontal size={13} className="text-[#5E5B56]" strokeWidth={2} />
         <p className="label-mono">Filtres</p>
       </div>
-      <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(4,1fr)_auto]">
+      <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(5,1fr)_auto]">
         <label className="relative" aria-label="Recherche">
           <Search size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5E5B56]" strokeWidth={2} />
           <input value={filters.query} onChange={(e) => update('query', e.target.value)}
@@ -22,9 +47,20 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           <option value="">Projet</option>
           <option>Acheter</option><option>Louer</option><option>Vendre</option><option>Investir</option>
         </select>
+        <select value={filters.status} onChange={(e) => update('status', e.target.value)} className={selectClass}>
+          <option value="">Statut</option>
+          <option>Envoyé</option>
+          <option>Favori</option>
+          <option>En cours de traitement</option>
+          <option>Prioritaire</option>
+          <option>À compléter</option>
+          <option>Traité</option>
+          <option>À recontacter</option>
+          <option>Archivé</option>
+        </select>
         <select value={filters.maturity} onChange={(e) => update('maturity', e.target.value)} className={selectClass}>
           <option value="">Maturite</option>
-          <option>Faible</option><option>Moyen</option><option>Eleve</option>
+          <option>Faible</option><option>Moyen</option><option value="Élevé">Eleve</option>
         </select>
         <select value={filters.priority} onChange={(e) => update('priority', e.target.value)} className={selectClass}>
           <option value="">Priorite</option>

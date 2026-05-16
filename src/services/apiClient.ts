@@ -3,8 +3,11 @@
  * Lit le token JWT depuis le localStorage et l'injecte dans chaque requête.
  */
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const API_URL =
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
+  (import.meta.env.DEV ? 'http://localhost:3000' : '')
 
+const SESSION_KEY = 'ds-current-user'
 const TOKENS_KEY = 'ds-auth-tokens'
 
 type StoredTokens = {
@@ -12,23 +15,31 @@ type StoredTokens = {
   refreshToken: string
 }
 
-function getAccessToken(): string | null {
+type RefreshResponse = StoredTokens & {
+  user?: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    phone: string | null
+    role: 'USER' | 'ADMIN' | 'user' | 'admin'
+    createdAt: string
+    updatedAt?: string
+  }
+}
+
+function getStoredTokens(): StoredTokens | null {
   try {
     const raw = localStorage.getItem(TOKENS_KEY)
     if (!raw) return null
     const tokens = JSON.parse(raw) as StoredTokens
-    return tokens.accessToken ?? null
+    return tokens.accessToken && tokens.refreshToken ? tokens : null
   } catch {
     return null
   }
 }
 
-export async function apiRequest<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
-  const token = getAccessToken()
-
+function buildHeaders(init: RequestInit, token?: string) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(init.headers as Record<string, string>),
@@ -38,10 +49,66 @@ export async function apiRequest<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers,
+  return headers
+}
+
+async function refreshTokens(): Promise<StoredTokens | null> {
+  const tokens = getStoredTokens()
+  if (!tokens?.refreshToken) return null
+
+  const response = await fetch(`${API_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: tokens.refreshToken }),
   })
+
+  if (!response.ok) {
+    localStorage.removeItem(TOKENS_KEY)
+    localStorage.removeItem(SESSION_KEY)
+    return null
+  }
+
+  const session = (await response.json()) as RefreshResponse
+  const nextTokens = {
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  }
+
+  localStorage.setItem(TOKENS_KEY, JSON.stringify(nextTokens))
+  if (session.user) {
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        ...session.user,
+        phone: session.user.phone ?? '',
+        role: session.user.role === 'ADMIN' ? 'admin' : 'user',
+      }),
+    )
+  }
+
+  return nextTokens
+}
+
+async function sendRequest(path: string, init: RequestInit, token?: string) {
+  return fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: buildHeaders(init, token),
+  })
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const tokens = getStoredTokens()
+  let response = await sendRequest(path, init, tokens?.accessToken)
+
+  if (response.status === 401 && tokens?.refreshToken) {
+    const refreshed = await refreshTokens()
+    if (refreshed?.accessToken) {
+      response = await sendRequest(path, init, refreshed.accessToken)
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => null)

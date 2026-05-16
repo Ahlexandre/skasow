@@ -33,11 +33,13 @@ enum CommercialPriority {
 
 enum AnalysisStatus {
   SENT
+  FAVORITE
   IN_PROGRESS
   PRIORITY
   INCOMPLETE
   PROCESSED
   TO_RECONTACT
+  ARCHIVED
 }
 
 enum Urgency {

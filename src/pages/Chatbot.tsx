@@ -19,9 +19,20 @@ export default function Chatbot() {
     setMessages((c) => [...c, { role: 'user', content: trimmed }])
     setInputValue('')
     setIsTyping(true)
-    const reply = await requestChatbotReply(trimmed)
-    setIsTyping(false)
-    setMessages((c) => [...c, { role: 'assistant', content: reply }])
+    try {
+      const reply = await requestChatbotReply(trimmed)
+      setMessages((c) => [...c, { role: 'assistant', content: reply }])
+    } catch {
+      setMessages((c) => [
+        ...c,
+        {
+          role: 'assistant',
+          content: 'Le service chatbot est momentanement indisponible.',
+        },
+      ])
+    } finally {
+      setIsTyping(false)
+    }
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 

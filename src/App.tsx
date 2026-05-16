@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminUsers from './pages/AdminUsers'
 import Auth from './pages/Auth'
 import Chatbot from './pages/Chatbot'
 import Contact from './pages/Contact'
@@ -42,6 +43,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminUsers />
                 </ProtectedRoute>
               }
             />

@@ -17,13 +17,13 @@ export const selectClass = 'input-dark appearance-none cursor-pointer'
 export const textareaClass = 'input-dark resize-none leading-7'
 
 export const primaryButton =
-  'inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#09090E] transition-all duration-200 hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)] hover:-translate-y-px active:translate-y-0 focus:outline-none focus:shadow-[0_0_0_3px_rgba(201,168,76,0.25)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none'
+  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#09090E] transition-all duration-200 hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)] hover:-translate-y-px active:translate-y-0 focus:outline-none focus:shadow-[0_0_0_3px_rgba(201,168,76,0.25)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none'
 
 export const secondaryButton =
-  'inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all duration-200 hover:border-[#C9A84C]/30 hover:text-[#EDEAE4] hover:-translate-y-px active:translate-y-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40'
+  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all duration-200 hover:border-[#C9A84C]/30 hover:text-[#EDEAE4] hover:-translate-y-px active:translate-y-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40'
 
 export const ghostButton =
-  'inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-[#5E5B56] transition-all duration-200 hover:bg-white/5 hover:text-[#EDEAE4] focus:outline-none'
+  'inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-[#5E5B56] transition-all duration-200 hover:bg-white/5 hover:text-[#EDEAE4] focus:outline-none'
 
 /* ── Button ── */
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
@@ -33,7 +33,7 @@ export function Button({ variant = 'primary', className, type = 'button', ...pro
   const v =
     variant === 'secondary' ? secondaryButton
     : variant === 'ghost'   ? ghostButton
-    : variant === 'danger'  ? 'inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full border border-red-500/25 bg-red-500/8 px-6 py-2.5 text-sm font-medium text-red-400 transition-all hover:bg-red-500/15 focus:outline-none'
+    : variant === 'danger'  ? 'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full border border-red-500/25 bg-red-500/8 px-6 py-2.5 text-sm font-medium text-red-400 transition-all hover:bg-red-500/15 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40'
     : primaryButton
   return <button type={type} className={cn(v, className)} {...props} />
 }

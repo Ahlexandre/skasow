@@ -3,11 +3,13 @@ import type { User } from './user'
 
 export type ProspectStatus =
   | 'Envoyé'
+  | 'Favori'
   | 'En cours de traitement'
   | 'Prioritaire'
   | 'À compléter'
   | 'Traité'
   | 'À recontacter'
+  | 'Archivé'
 
 export type Prospect = {
   id: string
