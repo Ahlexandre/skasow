@@ -11,7 +11,6 @@ import FAQ from './pages/FAQ'
 import Home from './pages/Home'
 import PreAnalysis from './pages/PreAnalysis'
 import ServiceDetail from './pages/ServiceDetail'
-import Services from './pages/Services'
 import UserDashboard from './pages/UserDashboard'
 
 function App() {
@@ -21,7 +20,7 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="services" element={<Services />} />
+            <Route path="services" element={<Navigate to="/#services" replace />} />
             <Route path="services/:slug" element={<ServiceDetail />} />
             <Route path="pre-analysis" element={<PreAnalysis />} />
             <Route path="pre-analyse-ia" element={<PreAnalysis />} />

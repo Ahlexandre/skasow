@@ -1,14 +1,22 @@
 import { ArrowRight, Building2, LayoutDashboard, LogOut, Menu, MessageCircle, Phone, ShieldCheck, User, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { publicNavLinks, secondaryNavLinks } from '../data/services'
 import { useAuth } from '../contexts/useAuth'
 
-const publicLinks = [
-  { label: 'Services',   to: '/services' },
-  { label: 'Analyse IA', to: '/pre-analysis' },
-  { label: 'FAQ',        to: '/faq' },
-  { label: 'Contact',    to: '/contact' },
-]
+function navLinkClass(active: boolean) {
+  return (
+    'text-sm transition-colors duration-150 ' +
+    (active ? 'text-[#C9A84C]' : 'text-[#5E5B56] hover:text-[#EDEAE4]')
+  )
+}
+
+function mobileNavLinkClass(active: boolean) {
+  return (
+    'py-4 text-2xl font-medium transition-colors border-b border-white/5 ' +
+    (active ? 'text-[#C9A84C]' : 'text-[#EDEAE4]')
+  )
+}
 
 const sidebarLinks = [
   { label: 'Vue globale', to: '/admin/dashboard', icon: LayoutDashboard },
@@ -27,6 +35,27 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
   const location = useLocation()
 
   const handleLogout = async () => { await logout(); setIsOpen(false); navigate('/') }
+
+  const isHomeLinkActive = (hash: string | null) => {
+    if (location.pathname !== '/') return false
+    const currentHash = location.hash.replace('#', '')
+    if (hash === null) return !currentHash
+    return currentHash === hash
+  }
+
+  const renderHomeNavLink = (link: (typeof publicNavLinks)[number], mobile = false) => {
+    const active = isHomeLinkActive(link.hash)
+    return (
+      <Link
+        key={link.label}
+        to={link.to}
+        className={mobile ? mobileNavLinkClass(active) : navLinkClass(active)}
+        onClick={mobile ? () => setIsOpen(false) : undefined}
+      >
+        {link.label}
+      </Link>
+    )
+  }
 
   /* Sidebar dashboard */
   if (sidebar) {
@@ -83,12 +112,14 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
           <span className="text-sm text-[#5E5B56]">Conseil Immobilier</span>
         </Link>
 
-        <nav className="hidden items-center gap-8 lg:flex">
-          {publicLinks.map((link) => (
-            <NavLink key={link.to} to={link.to} end={link.to === '/'}
-              className={({ isActive }) =>
-                'text-sm transition-colors duration-150 ' + (isActive ? 'text-[#C9A84C]' : 'text-[#5E5B56] hover:text-[#EDEAE4]')
-              }>
+        <nav className="hidden items-center gap-6 xl:gap-8 lg:flex">
+          {publicNavLinks.map((link) => renderHomeNavLink(link))}
+          {secondaryNavLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) => navLinkClass(isActive)}
+            >
               {link.label}
             </NavLink>
           ))}
@@ -130,12 +161,14 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
         <div className="fixed inset-0 top-[57px] z-50 flex flex-col px-6 py-10 lg:hidden"
           style={{ background: '#09090E' }}>
           <nav className="flex flex-col gap-1">
-            {publicLinks.map((link) => (
-              <NavLink key={link.to} to={link.to}
-                className={({ isActive }) =>
-                  'py-4 text-2xl font-medium transition-colors border-b border-white/5 ' + (isActive ? 'text-[#C9A84C]' : 'text-[#EDEAE4]')
-                }
-                onClick={() => setIsOpen(false)}>
+            {publicNavLinks.map((link) => renderHomeNavLink(link, true))}
+            {secondaryNavLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => mobileNavLinkClass(isActive)}
+                onClick={() => setIsOpen(false)}
+              >
                 {link.label}
               </NavLink>
             ))}

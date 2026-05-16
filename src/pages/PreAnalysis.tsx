@@ -2,109 +2,44 @@ import { ArrowLeft, ArrowRight, BrainCircuit, CheckCircle2, Clock, Home, KeyRoun
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
+import {
+  BudgetSelect,
+  LocationSelect,
+  MaritalStatusSelect,
+  ProfessionSelect,
+  PropertyTypeSelect,
+  SurfaceSelect,
+} from '../components/AnalysisFormSelects'
 import { Button, Input, ProgressSteps, Select, Textarea, labelClass, primaryButton, secondaryButton } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
 import { generateAnalysis } from '../services/analysisService'
 import { saveProspect } from '../services/prospectService'
 import type { AnalysisFormData, AnalysisResult, ProjectType } from '../types/analysis'
+import { hasPersonalProfile } from '../types/analysis'
 import type { Prospect } from '../types/prospect'
 import { cn } from '../utils/cn'
 import { readStorage, removeStorage, writeStorage } from '../utils/storage'
 
 const DRAFT_KEY = 'ds-pending-analysis-draft'
-const initialForm: AnalysisFormData = { projectType: 'Acheter', location: '', budget: '', propertyType: '', surface: '', urgency: 'Sous 3 mois', objective: '', name: '', email: '', phone: '', consent: false }
-const steps = ['Projet','Localisation','Budget','Objectif','Coordonnees','Confirmation','Resultat']
-
-/* Villes et quartiers du Mali */
-const MALI_LOCATIONS = [
-  // Bamako — communes
-  'Bamako — Commune I (Djélibougou, Boulkassoumbougou)',
-  'Bamako — Commune II (Niarela, Quinzambougou, TSF)',
-  'Bamako — Commune III (Bamako-Coura, Médina-Coura, Missira)',
-  'Bamako — Commune IV (Lafiabougou, Taliko, Sikoroni)',
-  'Bamako — Commune V (Badalabougou, Kalaban-Coura, Sabalibougou)',
-  'Bamako — Commune VI (Sogoniko, Magnambougou, Niamakoro)',
-  // Quartiers prisés
-  'ACI 2000 (Hamdallaye)',
-  'Badalabougou',
-  'Kalaban-Coura',
-  'Kalaban-Coura Extension',
-  'Sotuba',
-  'Sotuba ACI',
-  'Missabougou',
-  'Sénou',
-  'Yirimadio',
-  'Faladiè',
-  'Sabalibougou',
-  'Magnambougou',
-  'Niamakoro',
-  'Banconi',
-  'Sikoroni',
-  'Lafiabougou',
-  'Djicoroni Para',
-  'Garantibougou',
-  'Korofina',
-  'Niarela',
-  'Quinzambougou',
-  'Hippodrome',
-  'Point G',
-  'Boulkassoumbougou',
-  'Titibougou',
-  'Dialakorodji',
-  'Mountougoula',
-  'Kabala',
-  // Autres villes du Mali
-  'Sikasso',
-  'Mopti',
-  'Ségou',
-  'Kayes',
-  'Koutiala',
-  'Gao',
-  'Tombouctou',
-  'Kidal',
-  'San',
-  'Bougouni',
-  'Kati',
-  'Kolokani',
-  'Niono',
-  'Markala',
-  'Dioïla',
-  'Fana',
-  'Kangaba',
-  'Yanfolila',
-  'Kolondiéba',
-]
-
-/* Tranches de budget FCFA */
-const BUDGET_RANGES = [
-  'Moins de 5 000 000 FCFA',
-  '5 000 000 — 10 000 000 FCFA',
-  '10 000 000 — 20 000 000 FCFA',
-  '20 000 000 — 35 000 000 FCFA',
-  '35 000 000 — 50 000 000 FCFA',
-  '50 000 000 — 75 000 000 FCFA',
-  '75 000 000 — 100 000 000 FCFA',
-  '100 000 000 — 150 000 000 FCFA',
-  '150 000 000 — 250 000 000 FCFA',
-  'Plus de 250 000 000 FCFA',
-  'Budget à définir avec DS Conseil',
-]
-
-/* Types de biens */
-const PROPERTY_TYPES = [
-  'Maison individuelle',
-  'Villa',
-  'Appartement',
-  'Studio',
-  'Terrain nu',
-  'Terrain viabilisé',
-  'Local commercial',
-  'Bureau',
-  'Entrepôt / Hangar',
-  'Immeuble de rapport',
-  'Duplex',
-  'Autre',
-]
+const initialForm: AnalysisFormData = {
+  projectType: 'Acheter',
+  location: '',
+  budget: '',
+  propertyType: '',
+  surface: '',
+  urgency: 'Sous 3 mois',
+  objective: '',
+  profession: '',
+  maritalStatus: '',
+  hasChildren: '',
+  childrenCount: '',
+  personalNotes: '',
+  name: '',
+  email: '',
+  phone: '',
+  consent: false,
+}
+const steps = ['Projet', 'Localisation', 'Budget', 'Objectif', 'Profil', 'Coordonnees', 'Confirmation', 'Resultat']
 
 const projectOptions: Array<{ value: ProjectType; title: string; text: string; icon: typeof Home }> = [
   { value: 'Acheter',  title: 'Acheter',   text: 'Trouver un bien fiable et adapte a votre budget.',           icon: Home },
@@ -116,7 +51,10 @@ const projectOptions: Array<{ value: ProjectType; title: string; text: string; i
 export default function PreAnalysis() {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
-  const [formData, setFormData] = useState<AnalysisFormData>(() => readStorage(DRAFT_KEY, initialForm))
+  const [formData, setFormData] = useState<AnalysisFormData>(() => ({
+    ...initialForm,
+    ...readStorage<Partial<AnalysisFormData>>(DRAFT_KEY, {}),
+  }))
   const [currentStep, setCurrentStep] = useState(0)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [prospect, setProspect] = useState<Prospect | null>(null)
@@ -126,7 +64,7 @@ export default function PreAnalysis() {
   const [transmissionConsent, setTransmissionConsent] = useState(false)
 
   const completedFields = [formData.projectType, formData.location, formData.budget, formData.propertyType, formData.objective].filter(Boolean).length
-  const progressStep = result ? 6 : awaitingConfirmation ? 5 : currentStep
+  const progressStep = result ? 7 : awaitingConfirmation ? 6 : currentStep
 
   const updateField = (field: keyof AnalysisFormData, value: string | boolean) => {
     setFormData((c) => ({ ...c, [field]: value }))
@@ -139,9 +77,10 @@ export default function PreAnalysis() {
     (currentStep === 2 && Boolean(formData.budget.trim()) && Boolean(formData.propertyType.trim())) ||
     (currentStep === 3 && Boolean(formData.objective.trim())) ||
     currentStep === 4 ||
-    (currentStep === 5 && formData.consent)
+    currentStep === 5 ||
+    (currentStep === 6 && formData.consent)
 
-  const goNext = () => { if (!canContinue) return; setCurrentStep((s) => Math.min(s + 1, 5)) }
+  const goNext = () => { if (!canContinue) return; setCurrentStep((s) => Math.min(s + 1, 6)) }
   const goBack = () => { setCurrentStep((s) => Math.max(s - 1, 0)); setAuthRequired(false); setAwaitingConfirmation(false) }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -200,7 +139,7 @@ export default function PreAnalysis() {
           {/* Header form */}
           <div className="flex items-center justify-between p-6 lg:p-8" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <div>
-              <span className="font-mono text-xs text-[#6B6760]">Etape {Math.min(progressStep + 1, 7)}/7</span>
+              <span className="font-mono text-xs text-[#6B6760]">Etape {Math.min(progressStep + 1, 8)}/8</span>
               <h2 className="mt-1 font-display text-xl text-[#F0EDE8]">{steps[progressStep]}</h2>
             </div>
             <div className="text-right">
@@ -237,24 +176,11 @@ export default function PreAnalysis() {
               <div className="flex flex-col gap-5">
                 <label className={labelClass}>
                   Ville ou quartier
-                  <Select required value={formData.location} onChange={(e) => updateField('location', e.target.value)}>
-                    <option value="">-- Choisissez une localisation --</option>
-                    <optgroup label="Bamako — Communes">
-                      {MALI_LOCATIONS.slice(0, 6).map((loc) => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Bamako — Quartiers">
-                      {MALI_LOCATIONS.slice(6, 32).map((loc) => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Autres villes du Mali">
-                      {MALI_LOCATIONS.slice(32).map((loc) => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </optgroup>
-                  </Select>
+                  <LocationSelect
+                    required
+                    value={formData.location}
+                    onChange={(value) => updateField('location', value)}
+                  />
                 </label>
                 <div className="flex items-start gap-3 rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
                   <MapPin size={14} className="mt-0.5 shrink-0 text-[#C9A84C]" strokeWidth={2} />
@@ -266,35 +192,26 @@ export default function PreAnalysis() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className={labelClass}>
                   Budget (en FCFA)
-                  <Select required value={formData.budget} onChange={(e) => updateField('budget', e.target.value)}>
-                    <option value="">-- Selectionnez une tranche --</option>
-                    {BUDGET_RANGES.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                  </Select>
+                  <BudgetSelect
+                    required
+                    value={formData.budget}
+                    onChange={(value) => updateField('budget', value)}
+                  />
                 </label>
                 <label className={labelClass}>
                   Type de bien
-                  <Select required value={formData.propertyType} onChange={(e) => updateField('propertyType', e.target.value)}>
-                    <option value="">-- Selectionnez un type --</option>
-                    {PROPERTY_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </Select>
+                  <PropertyTypeSelect
+                    required
+                    value={formData.propertyType}
+                    onChange={(value) => updateField('propertyType', value)}
+                  />
                 </label>
                 <label className={labelClass}>
                   Surface souhaitee
-                  <Select value={formData.surface} onChange={(e) => updateField('surface', e.target.value)}>
-                    <option value="">-- Non definie --</option>
-                    <option>Moins de 50 m²</option>
-                    <option>50 — 100 m²</option>
-                    <option>100 — 200 m²</option>
-                    <option>200 — 300 m²</option>
-                    <option>300 — 500 m²</option>
-                    <option>500 — 1 000 m²</option>
-                    <option>Plus de 1 000 m²</option>
-                    <option>A definir avec DS Conseil</option>
-                  </Select>
+                  <SurfaceSelect
+                    value={formData.surface}
+                    onChange={(value) => updateField('surface', value)}
+                  />
                 </label>
                 <label className={labelClass}>
                   Urgence
@@ -314,6 +231,67 @@ export default function PreAnalysis() {
               <label className={labelClass}>Objectif et contraintes<Textarea required rows={6} value={formData.objective} onChange={(e) => updateField('objective', e.target.value)} placeholder="Decrivez votre besoin, vos contraintes, vos attentes..." /></label>
             )}
             {currentStep === 4 && (
+              <div className="flex flex-col gap-5">
+                <div className="rounded-[12px] p-4" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.1)' }}>
+                  <p className="text-xs leading-6 text-[#6B6760]">
+                    Ces informations sont <strong className="text-[#C9A84C]">facultatives</strong>. Elles aident DS Conseil a mieux comprendre votre contexte sans bloquer votre analyse.
+                  </p>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className={labelClass}>
+                    Metier / activite professionnelle
+                    <ProfessionSelect
+                      value={formData.profession}
+                      onChange={(value) => updateField('profession', value)}
+                    />
+                  </label>
+                  <label className={labelClass}>
+                    Situation familiale
+                    <MaritalStatusSelect
+                      value={formData.maritalStatus}
+                      onChange={(value) => updateField('maritalStatus', value)}
+                    />
+                  </label>
+                  <label className={labelClass}>
+                    Enfants a charge
+                    <Select
+                      value={formData.hasChildren}
+                      onChange={(e) => {
+                        updateField('hasChildren', e.target.value)
+                        if (e.target.value !== 'oui') updateField('childrenCount', '')
+                      }}
+                    >
+                      <option value="">-- Non renseigne --</option>
+                      <option value="oui">Oui</option>
+                      <option value="non">Non</option>
+                    </Select>
+                  </label>
+                  {formData.hasChildren === 'oui' && (
+                    <label className={labelClass}>
+                      Nombre d&apos;enfants (facultatif)
+                      <Input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={formData.childrenCount}
+                        onChange={(e) => updateField('childrenCount', e.target.value)}
+                        placeholder="Ex. 2"
+                      />
+                    </label>
+                  )}
+                </div>
+                <label className={labelClass}>
+                  Autres precisions personnelles
+                  <Textarea
+                    rows={4}
+                    value={formData.personalNotes}
+                    onChange={(e) => updateField('personalNotes', e.target.value)}
+                    placeholder="Ex. projet en couple, besoin de proximite ecole, revenus variables..."
+                  />
+                </label>
+              </div>
+            )}
+            {currentStep === 5 && (
               <div className="grid gap-5 sm:grid-cols-3">
                 <label className={labelClass}>Nom<Input value={formData.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Facultatif" /></label>
                 <label className={labelClass}>Email<Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} placeholder="Facultatif" /></label>
@@ -331,10 +309,18 @@ export default function PreAnalysis() {
                 </label>
               </div>
             )}
-            {currentStep === 5 && (
+            {currentStep === 6 && (
               <div className="flex flex-col gap-5">
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {[['Projet', formData.projectType],['Localisation', formData.location],['Budget', formData.budget],['Bien', formData.propertyType],['Urgence', formData.urgency],['Contact', formData.phone || formData.email || 'A completer']].map(([label, value]) => (
+                  {[
+                    ['Projet', formData.projectType],
+                    ['Localisation', formData.location],
+                    ['Budget', formData.budget],
+                    ['Bien', formData.propertyType],
+                    ['Urgence', formData.urgency],
+                    ['Profil', hasPersonalProfile(formData) ? 'Renseigne' : 'Non renseigne (facultatif)'],
+                    ['Contact', formData.phone || formData.email || 'A completer'],
+                  ].map(([label, value]) => (
                     <div key={label} className="flex flex-col gap-1 rounded-[10px] p-3" style={{ background: '#1C1C27' }}>
                       <span className="font-mono text-[10px] tracking-[0.15em] text-[#6B6760] uppercase">{label}</span>
                       <span className="text-sm font-semibold text-[#F0EDE8]">{value || 'A preciser'}</span>
@@ -354,8 +340,19 @@ export default function PreAnalysis() {
             <Button type="button" variant="ghost" onClick={goBack} disabled={currentStep === 0 || Boolean(result)}>
               <ArrowLeft size={15} strokeWidth={2} /> Retour
             </Button>
-            {currentStep < 5
-              ? <Button type="button" onClick={goNext} disabled={!canContinue}>Continuer <ArrowRight size={15} strokeWidth={2} /></Button>
+            {currentStep < 6
+              ? (
+                <div className="flex items-center gap-3">
+                  {currentStep === 4 && (
+                    <Button type="button" variant="ghost" onClick={goNext}>
+                      Passer cette etape
+                    </Button>
+                  )}
+                  <Button type="button" onClick={goNext} disabled={!canContinue}>
+                    Continuer <ArrowRight size={15} strokeWidth={2} />
+                  </Button>
+                </div>
+              )
               : <button type="submit" disabled={!formData.consent} className={primaryButton}><BrainCircuit size={16} strokeWidth={1.75} />Obtenir mon analyse</button>}
           </div>
         </form>

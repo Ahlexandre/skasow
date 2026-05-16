@@ -1,6 +1,7 @@
-import { ArrowRight, ArrowUpRight, BrainCircuit } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { realEstateServices } from '../data/services'
+﻿import { ArrowRight, ArrowUpRight, BrainCircuit } from 'lucide-react'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { realEstateServices, serviceNavAnchors, serviceSlugs } from '../data/services'
 import { primaryButton } from '../components/ui'
 
 const marqueeItems = [
@@ -9,27 +10,30 @@ const marqueeItems = [
   'Badalabougou', 'Sotuba', 'Kalaban-Coura', 'Mali',
 ]
 
-const slugs: Record<string, string> = {
-  'Achat': 'achat',
-  'Location': 'location',
-  'Vente': 'vente',
-  'Investissement': 'investissement',
-  'Gestion immobiliere': 'gestion-immobiliere',
-  'Accompagnement administratif': 'accompagnement-administratif',
-}
-
 export default function Home() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (!location.hash) return
+    const id = location.hash.replace('#', '')
+    const el = document.getElementById(id)
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }, [location.hash])
   return (
     <div className="overflow-x-hidden">
 
-      {/* ─────────────────────────────────────────────────────
-          HERO — typographie pure, sans image
-      ───────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          HERO â€” typographie pure, sans image
+      â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="px-6 pb-20 pt-20 lg:px-16 lg:pt-28 lg:pb-24">
 
         {/* Label editorial haut */}
         <div className="flex items-center justify-between border-b border-white/5 pb-6">
-          <span className="label-mono">001 — Immobilier Mali</span>
+          <span className="label-mono">001 â€” Immobilier Mali</span>
           <span className="label-mono">2025</span>
         </div>
 
@@ -54,7 +58,7 @@ export default function Home() {
               Analyse gratuite
               <ArrowRight size={16} strokeWidth={2.5} />
             </Link>
-            <Link to="/services"
+            <Link to="/#services"
               className="inline-flex min-h-[46px] items-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all hover:border-[#C9A84C]/30 hover:text-[#EDEAE4]">
               Nos services
             </Link>
@@ -76,9 +80,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           MARQUEE
-      ───────────────────────────────────────────────────── */}
+      â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="overflow-hidden border-y border-white/5 py-4">
         <div className="marquee-track">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((item, i) => (
@@ -90,30 +94,29 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────
-          SERVICES — grille bento
-      ───────────────────────────────────────────────────── */}
-      <section className="px-6 py-24 lg:px-16 lg:py-32">
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          SERVICES â€” grille bento
+      â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section id="services" className="scroll-mt-24 px-6 py-24 lg:px-16 lg:py-32">
 
         <div className="mb-14 flex items-end justify-between">
           <div>
-            <span className="label-mono">002 — Services</span>
+            <span className="label-mono">002 â€” Services</span>
             <h2 className="title-display title-xl mt-4 text-[#EDEAE4]">
               Ce que nous faisons
             </h2>
           </div>
-          <Link to="/services"
-            className="hidden items-center gap-1.5 text-sm text-[#5E5B56] transition-colors hover:text-[#C9A84C] lg:flex">
-            Tout voir <ArrowUpRight size={14} strokeWidth={2} />
-          </Link>
         </div>
 
         {/* Grille bento */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* Grande cellule — col-span 2, row-span 2 */}
-          <div className="bento-cell flex flex-col justify-between p-8 sm:col-span-2 sm:row-span-2"
-            style={{ minHeight: '340px' }}>
+          {/* Grande cellule â€” col-span 2, row-span 2 */}
+          <div
+            id={serviceNavAnchors[realEstateServices[0].title]}
+            className="bento-cell flex scroll-mt-28 flex-col justify-between p-8 sm:col-span-2 sm:row-span-2"
+            style={{ minHeight: '340px' }}
+          >
             <div>
               <span className="label-mono">01</span>
               <h3 className="title-display title-md mt-5 text-[#EDEAE4] lg:title-lg">
@@ -123,19 +126,24 @@ export default function Home() {
                 {realEstateServices[0].description}
               </p>
             </div>
-            <Link to="/services/achat"
-              className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A]">
+            <Link
+              to={`/services/${serviceSlugs[realEstateServices[0].title]}`}
+              className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A]"
+            >
               Decouvrir <ArrowRight size={14} strokeWidth={2.5} />
             </Link>
           </div>
 
           {/* 4 petites cellules */}
           {realEstateServices.slice(1, 5).map((s, i) => {
-            const slug = slugs[s.title] || s.title.toLowerCase().replace(/\s+/g, '-')
+            const slug = serviceSlugs[s.title] ?? s.title.toLowerCase().replace(/\s+/g, '-')
             return (
-              <Link key={s.title} to={'/services/' + slug}
-                className="bento-cell flex flex-col justify-between p-6"
-                style={{ minHeight: '160px' }}>
+              <Link
+                key={s.title}
+                to={`/services/${slug}`}
+                className="bento-cell flex flex-col justify-between p-6 scroll-mt-28"
+                style={{ minHeight: '160px' }}
+              >
                 <div>
                   <span className="label-mono">0{i + 2}</span>
                   <h3 className="mt-3 text-base font-semibold leading-snug text-[#EDEAE4]">
@@ -152,17 +160,56 @@ export default function Home() {
             )
           })}
         </div>
+
+        <div className="mt-20 flex flex-col border-t border-white/5 pt-16">
+          <p className="mb-10 max-w-lg text-sm leading-7 text-[#9E9A94]">
+            Cliquez sur un service pour decouvrir comment DS Conseil vous accompagne concretement.
+          </p>
+          {realEstateServices.map((service, i) => {
+            const slug = serviceSlugs[service.title] ?? service.title.toLowerCase().replace(/\s+/g, '-')
+            const anchor = serviceNavAnchors[service.title]
+            const Icon = service.icon
+            return (
+              <Link
+                key={service.title}
+                id={anchor}
+                to={`/services/${slug}`}
+                className="group flex scroll-mt-28 items-center justify-between border-b border-white/5 py-8 transition-all duration-200 hover:border-[#C9A84C]/20 lg:py-10"
+              >
+                <div className="flex items-start gap-6 lg:gap-12">
+                  <span className="label-mono w-8 shrink-0 pt-1">0{i + 1}</span>
+                  <div className="flex items-start gap-5">
+                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#C9A84C]/8 text-[#C9A84C] transition-colors group-hover:bg-[#C9A84C]/15">
+                      <Icon size={18} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <h3 className="title-display text-xl text-[#EDEAE4] transition-colors group-hover:text-[#C9A84C] lg:text-2xl">
+                        {service.title}
+                      </h3>
+                      <p className="mt-2 max-w-lg text-sm leading-7 text-[#5E5B56]">{service.description}</p>
+                    </div>
+                  </div>
+                </div>
+                <ArrowUpRight
+                  size={18}
+                  strokeWidth={1.75}
+                  className="shrink-0 text-[#5E5B56] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#C9A84C]"
+                />
+              </Link>
+            )
+          })}
+        </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           ANALYSE IA
-      ───────────────────────────────────────────────────── */}
+      â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
 
           {/* Texte */}
           <div>
-            <span className="label-mono">003 — Analyse IA</span>
+            <span className="label-mono">003 â€” Analyse IA</span>
             <h2 className="title-display title-xl mt-5 text-[#EDEAE4]">
               Un diagnostic,<br />
               <em className="not-italic text-gold-gradient">pas un formulaire.</em>
@@ -229,7 +276,7 @@ export default function Home() {
                   style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.12)' }}>
                   <p className="label-mono text-[#C9A84C]/60">Prochaine action</p>
                   <p className="mt-2 text-sm leading-6 text-[#9E9A94]">
-                    Rappel sous 24h — dossier complet, budget coherent avec le marche.
+                    Rappel sous 24h â€” dossier complet, budget coherent avec le marche.
                   </p>
                 </div>
               </div>
@@ -248,13 +295,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           CTA FINAL
-      ───────────────────────────────────────────────────── */}
+      â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span className="label-mono">004 — Commencer</span>
+            <span className="label-mono">004 â€” Commencer</span>
             <h2 className="title-display title-2xl mt-5 text-[#EDEAE4]">
               Pret a demarrer<br />
               <span className="text-gold-gradient">votre projet ?</span>
@@ -277,7 +324,7 @@ export default function Home() {
         </div>
 
         <div className="mt-16 flex items-center justify-between border-t border-white/5 pt-8">
-          <span className="label-mono">DS Conseil Immobilier — Bamako, Mali</span>
+          <span className="label-mono">DS Conseil Immobilier â€” Bamako, Mali</span>
           <span className="label-mono">2025</span>
         </div>
       </section>

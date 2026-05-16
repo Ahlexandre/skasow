@@ -48,6 +48,15 @@ enum Urgency {
   HIGH
 }
 
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  PARTNERED
+  DIVORCED
+  WIDOWED
+  PREFER_NOT_TO_SAY
+}
+
 model User {
   id            String         @id @default(uuid())
   firstName     String
@@ -89,11 +98,18 @@ model Analysis {
   city               String
   district           String?
   budget             Decimal?           @db.Decimal(14, 2)
+  budgetRange        String?
   propertyType       String?
   surface            Float?
+  surfaceRange       String?
   urgency            Urgency
   objective          String?
   message            String?
+  profession         String?
+  maritalStatus      MaritalStatus?
+  hasChildren        Boolean?
+  childrenCount      Int?
+  personalNotes      String?
   consentAccepted    Boolean
   score              Int
   maturityLevel      MaturityLevel

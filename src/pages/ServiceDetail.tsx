@@ -152,7 +152,7 @@ export default function ServiceDetail() {
     return (
       <div className="px-6 py-24 text-center lg:px-16">
         <p className="font-display text-2xl text-[#F0EDE8]">Service introuvable.</p>
-        <Link to="/services" className="mt-6 inline-flex items-center gap-2 text-sm text-[#C9A84C] hover:underline">
+        <Link to="/#services" className="mt-6 inline-flex items-center gap-2 text-sm text-[#C9A84C] hover:underline">
           <ArrowLeft size={14} /> Retour aux services
         </Link>
       </div>
@@ -164,7 +164,7 @@ export default function ServiceDetail() {
   return (
     <div className="px-6 py-16 lg:px-16 lg:py-24">
       {/* Retour */}
-      <Link to="/services" className="mb-10 inline-flex items-center gap-2 text-sm text-[#6B6760] transition-colors hover:text-[#C9A84C]">
+      <Link to="/#services" className="mb-10 inline-flex items-center gap-2 text-sm text-[#6B6760] transition-colors hover:text-[#C9A84C]">
         <ArrowLeft size={14} strokeWidth={2} /> Tous les services
       </Link>
 

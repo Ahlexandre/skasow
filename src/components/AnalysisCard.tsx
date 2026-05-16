@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle2, CircleAlert, ClipboardList, Mail, Phone, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { formatPersonalProfileLines, hasPersonalProfile } from '../types/analysis'
 import type { Prospect, ProspectStatus } from '../types/prospect'
 import { Badge, Button } from './ui'
 
@@ -185,6 +186,16 @@ export default function AnalysisCard({
             <div className="rounded-[14px] p-5" style={{ background: '#0F0F16', border: '1px solid rgba(255,255,255,0.06)' }}>
               <p className="label-mono">Objectif exprime</p>
               <p className="mt-3 text-sm leading-7 text-[#9E9A94]">{prospect.formData.objective}</p>
+            </div>
+          )}
+          {hasPersonalProfile(prospect.formData) && (
+            <div className="rounded-[14px] p-5" style={{ background: '#0F0F16', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="label-mono">Profil personnel (facultatif)</p>
+              <ul className="mt-3 flex flex-col gap-2 text-sm leading-7 text-[#9E9A94]">
+                {formatPersonalProfileLines(prospect.formData).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

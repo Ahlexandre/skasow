@@ -6,6 +6,10 @@ import {
 import { AnalysisStatus, Prisma, Role } from '@prisma/client';
 import { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  resolveBudgetRange,
+  resolveSurfaceRange,
+} from './analysis-range.util';
 import { AnalysisScoringService } from './analysis-scoring.service';
 import { CreateAnalysisDto } from './dto/create-analysis.dto';
 import { UpdateAnalysisDto } from './dto/update-analysis.dto';
@@ -37,7 +41,14 @@ export class AnalysesService {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
     });
-    const generated = this.scoring.generate(dto, {
+    const budgetResolved = resolveBudgetRange(dto.budgetRange, dto.budget);
+    const surfaceResolved = resolveSurfaceRange(dto.surfaceRange, dto.surface);
+    const scoringDto: CreateAnalysisDto = {
+      ...dto,
+      budget: budgetResolved.budget,
+      surface: surfaceResolved.surface,
+    };
+    const generated = this.scoring.generate(scoringDto, {
       email: user.email,
       phone: user.phone,
     });
@@ -48,12 +59,22 @@ export class AnalysesService {
         projectType: dto.projectType,
         city: dto.city.trim(),
         district: dto.district?.trim() || null,
-        budget: dto.budget ? new Prisma.Decimal(dto.budget) : null,
+        budget: budgetResolved.budget
+          ? new Prisma.Decimal(budgetResolved.budget)
+          : null,
+        budgetRange: budgetResolved.budgetRange,
         propertyType: dto.propertyType?.trim() || null,
-        surface: dto.surface || null,
+        surface: surfaceResolved.surface ?? null,
+        surfaceRange: surfaceResolved.surfaceRange,
         urgency: dto.urgency,
         objective: dto.objective?.trim() || null,
         message: dto.message?.trim() || null,
+        profession: dto.profession?.trim() || null,
+        maritalStatus: dto.maritalStatus ?? null,
+        hasChildren: dto.hasChildren ?? null,
+        childrenCount:
+          dto.hasChildren === true ? (dto.childrenCount ?? null) : null,
+        personalNotes: dto.personalNotes?.trim() || null,
         consentAccepted: dto.consentAccepted,
         score: generated.score,
         maturityLevel: generated.maturityLevel,
@@ -118,7 +139,20 @@ export class AnalysesService {
   ) {
     const existingAnalysis = await this.findAnalysisEntityForUser(id, user);
     const nextDto = this.mergeAnalysisDto(existingAnalysis, dto);
-    const generated = this.scoring.generate(nextDto, {
+    const budgetResolved = resolveBudgetRange(
+      nextDto.budgetRange,
+      nextDto.budget,
+    );
+    const surfaceResolved = resolveSurfaceRange(
+      nextDto.surfaceRange,
+      nextDto.surface,
+    );
+    const scoringDto: CreateAnalysisDto = {
+      ...nextDto,
+      budget: budgetResolved.budget,
+      surface: surfaceResolved.surface,
+    };
+    const generated = this.scoring.generate(scoringDto, {
       email: existingAnalysis.user.email,
       phone: existingAnalysis.user.phone,
     });
@@ -129,12 +163,22 @@ export class AnalysesService {
         projectType: nextDto.projectType,
         city: nextDto.city.trim(),
         district: nextDto.district?.trim() || null,
-        budget: nextDto.budget ? new Prisma.Decimal(nextDto.budget) : null,
+        budget: budgetResolved.budget
+          ? new Prisma.Decimal(budgetResolved.budget)
+          : null,
+        budgetRange: budgetResolved.budgetRange,
         propertyType: nextDto.propertyType?.trim() || null,
-        surface: nextDto.surface || null,
+        surface: surfaceResolved.surface ?? null,
+        surfaceRange: surfaceResolved.surfaceRange,
         urgency: nextDto.urgency,
         objective: nextDto.objective?.trim() || null,
         message: nextDto.message?.trim() || null,
+        profession: nextDto.profession?.trim() || null,
+        maritalStatus: nextDto.maritalStatus ?? null,
+        hasChildren: nextDto.hasChildren ?? null,
+        childrenCount:
+          nextDto.hasChildren === true ? (nextDto.childrenCount ?? null) : null,
+        personalNotes: nextDto.personalNotes?.trim() || null,
         consentAccepted: nextDto.consentAccepted,
         score: generated.score,
         maturityLevel: generated.maturityLevel,
@@ -220,11 +264,18 @@ export class AnalysesService {
       district: dto.district ?? analysis.district ?? undefined,
       budget:
         dto.budget ?? (analysis.budget ? Number(analysis.budget) : undefined),
+      budgetRange: dto.budgetRange ?? analysis.budgetRange ?? undefined,
       propertyType: dto.propertyType ?? analysis.propertyType ?? undefined,
       surface: dto.surface ?? analysis.surface ?? undefined,
+      surfaceRange: dto.surfaceRange ?? analysis.surfaceRange ?? undefined,
       urgency: dto.urgency ?? analysis.urgency,
       objective: dto.objective ?? analysis.objective ?? undefined,
       message: dto.message ?? analysis.message ?? undefined,
+      profession: dto.profession ?? analysis.profession ?? undefined,
+      maritalStatus: dto.maritalStatus ?? analysis.maritalStatus ?? undefined,
+      hasChildren: dto.hasChildren ?? analysis.hasChildren ?? undefined,
+      childrenCount: dto.childrenCount ?? analysis.childrenCount ?? undefined,
+      personalNotes: dto.personalNotes ?? analysis.personalNotes ?? undefined,
       consentAccepted: dto.consentAccepted ?? analysis.consentAccepted,
     };
   }

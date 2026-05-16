@@ -14,6 +14,37 @@ export type RealEstateService = {
   icon: LucideIcon
 }
 
+export const serviceSlugs: Record<string, string> = {
+  Achat: 'achat',
+  Location: 'location',
+  Vente: 'vente',
+  Investissement: 'investissement',
+  'Gestion immobilière': 'gestion-immobiliere',
+  'Accompagnement administratif': 'accompagnement-administratif',
+}
+
+/** Ancres sur la page d'accueil (barre de navigation) */
+export const serviceNavAnchors: Record<string, string> = {
+  Achat: 'acheter',
+  Location: 'louer',
+  Vente: 'vendre',
+  Investissement: 'investir',
+}
+
+export const publicNavLinks = [
+  { label: 'Accueil', to: '/', hash: null as string | null },
+  { label: 'Acheter', to: '/#acheter', hash: 'acheter' },
+  { label: 'Vendre', to: '/#vendre', hash: 'vendre' },
+  { label: 'Louer', to: '/#louer', hash: 'louer' },
+  { label: 'Investir', to: '/#investir', hash: 'investir' },
+] as const
+
+export const secondaryNavLinks = [
+  { label: 'Analyse IA', to: '/pre-analysis' },
+  { label: 'FAQ', to: '/faq' },
+  { label: 'Contact', to: '/contact' },
+] as const
+
 export const realEstateServices: RealEstateService[] = [
   {
     title: 'Achat',

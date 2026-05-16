@@ -8,7 +8,18 @@
  * Le localStorage n'est conservé que pour le dashboard admin (lecture seule, données locales).
  */
 
-import type { AnalysisFormData, AnalysisResult } from '../types/analysis'
+import {
+  formatBudgetFromNumber,
+  formatSurfaceFromNumber,
+  parseBudgetRangeLabel,
+  parseSurfaceRangeLabel,
+} from '../data/analysisFormOptions'
+import type {
+  AnalysisFormData,
+  AnalysisResult,
+  ChildrenAnswer,
+  MaritalStatusLabel,
+} from '../types/analysis'
 import type { Prospect, ProspectStatus } from '../types/prospect'
 import type { User } from '../types/user'
 import { apiRequest } from './apiClient'
@@ -58,6 +69,24 @@ const API_STATUS_MAP: Record<string, ProspectStatus> = {
   ARCHIVED: 'Archivé',
 }
 
+const MARITAL_STATUS_MAP: Record<Exclude<MaritalStatusLabel, ''>, string> = {
+  'Célibataire': 'SINGLE',
+  'Marié(e)': 'MARRIED',
+  'En couple': 'PARTNERED',
+  'Divorcé(e)': 'DIVORCED',
+  'Veuf(ve)': 'WIDOWED',
+  'Je préfère ne pas répondre': 'PREFER_NOT_TO_SAY',
+}
+
+const API_MARITAL_STATUS_MAP: Record<string, MaritalStatusLabel> = {
+  SINGLE: 'Célibataire',
+  MARRIED: 'Marié(e)',
+  PARTNERED: 'En couple',
+  DIVORCED: 'Divorcé(e)',
+  WIDOWED: 'Veuf(ve)',
+  PREFER_NOT_TO_SAY: 'Je préfère ne pas répondre',
+}
+
 const STATUS_API_MAP: Record<ProspectStatus, string> = {
   Envoyé: 'SENT',
   Favori: 'FAVORITE',
@@ -80,11 +109,18 @@ export type ApiAnalysis = {
   city: string
   district?: string | null
   budget?: number | null
+  budgetRange?: string | null
   propertyType?: string | null
   surface?: number | null
+  surfaceRange?: string | null
   urgency: string
   objective?: string | null
   message?: string | null
+  profession?: string | null
+  maritalStatus?: string | null
+  hasChildren?: boolean | null
+  childrenCount?: number | null
+  personalNotes?: string | null
   score: number
   maturityLevel: string
   commercialPriority: string
@@ -132,16 +168,37 @@ function mapApiStatus(api: ApiAnalysis): ProspectStatus {
   return API_STATUS_MAP[api.status] ?? mapStatus(api.commercialPriority, api.score)
 }
 
-function parseNumberRange(value: string): number | undefined {
-  const numbers = value
-    .match(/\d[\d\s]*/g)
-    ?.map((item) => Number(item.replace(/\s/g, '')))
-    .filter((item) => Number.isFinite(item) && item > 0)
+function mapChildrenAnswer(value: ChildrenAnswer): boolean | undefined {
+  if (value === 'oui') return true
+  if (value === 'non') return false
+  return undefined
+}
 
-  if (!numbers?.length) return undefined
-  if (numbers.length === 1) return numbers[0]
+function mapChildrenFromApi(value?: boolean | null): ChildrenAnswer {
+  if (value === true) return 'oui'
+  if (value === false) return 'non'
+  return ''
+}
 
-  return Math.round((numbers[0] + numbers[1]) / 2)
+function buildPersonalPayload(formData: AnalysisFormData) {
+  const hasChildren = mapChildrenAnswer(formData.hasChildren)
+  const childrenCount =
+    hasChildren === true && formData.childrenCount.trim()
+      ? Number.parseInt(formData.childrenCount, 10)
+      : undefined
+
+  return {
+    profession: formData.profession.trim() || undefined,
+    maritalStatus: formData.maritalStatus
+      ? MARITAL_STATUS_MAP[formData.maritalStatus]
+      : undefined,
+    hasChildren,
+    childrenCount:
+      hasChildren === true && Number.isFinite(childrenCount)
+        ? childrenCount
+        : undefined,
+    personalNotes: formData.personalNotes.trim() || undefined,
+  }
 }
 
 function splitLocation(location: string) {
@@ -160,11 +217,21 @@ function apiAnalysisToFormData(api: ApiAnalysis, user?: User): AnalysisFormData 
   return {
     projectType: API_PROJECT_TYPE_MAP[api.projectType] ?? 'Acheter',
     location: api.city + (api.district ? ` — ${api.district}` : ''),
-    budget: formatBudgetRange(api.budget),
+    budget: api.budgetRange ?? formatBudgetFromNumber(api.budget),
     propertyType: api.propertyType ?? '',
-    surface: api.surface ? String(api.surface) : '',
+    surface: api.surfaceRange ?? formatSurfaceFromNumber(api.surface),
     urgency: API_URGENCY_MAP[api.urgency] ?? api.urgency,
     objective: api.objective ?? api.message ?? '',
+    profession: api.profession ?? '',
+    maritalStatus: api.maritalStatus
+      ? (API_MARITAL_STATUS_MAP[api.maritalStatus] ?? '')
+      : '',
+    hasChildren: mapChildrenFromApi(api.hasChildren),
+    childrenCount:
+      api.hasChildren === true && api.childrenCount != null
+        ? String(api.childrenCount)
+        : '',
+    personalNotes: api.personalNotes ?? '',
     name: `${api.user.firstName} ${api.user.lastName}`.trim(),
     email: api.user.email,
     phone: api.user.phone ?? user?.phone ?? '',
@@ -172,31 +239,16 @@ function apiAnalysisToFormData(api: ApiAnalysis, user?: User): AnalysisFormData 
   }
 }
 
-function formatBudgetRange(budget?: number | null) {
-  if (!budget || budget <= 0) return ''
+function buildAnalysisPayload(formData: AnalysisFormData) {
+  const budgetRange = formData.budget.trim() || undefined
+  const surfaceRange = formData.surface.trim() || undefined
 
-  const ranges = [
-    { max: 5_000_000, label: 'Moins de 5 000 000 FCFA' },
-    { min: 5_000_000, max: 10_000_000, label: '5 000 000 - 10 000 000 FCFA' },
-    { min: 10_000_000, max: 20_000_000, label: '10 000 000 - 20 000 000 FCFA' },
-    { min: 20_000_000, max: 35_000_000, label: '20 000 000 - 35 000 000 FCFA' },
-    { min: 35_000_000, max: 50_000_000, label: '35 000 000 - 50 000 000 FCFA' },
-    { min: 50_000_000, max: 75_000_000, label: '50 000 000 - 75 000 000 FCFA' },
-    { min: 75_000_000, max: 100_000_000, label: '75 000 000 - 100 000 000 FCFA' },
-    { min: 100_000_000, max: 150_000_000, label: '100 000 000 - 150 000 000 FCFA' },
-    { min: 150_000_000, max: 250_000_000, label: '150 000 000 - 250 000 000 FCFA' },
-    { min: 250_000_000, label: 'Plus de 250 000 000 FCFA' },
-  ]
-
-  const range = ranges.find((item) =>
-    item.min === undefined
-      ? budget < item.max
-      : item.max === undefined
-        ? budget >= item.min
-        : budget >= item.min && budget <= item.max,
-  )
-
-  return range?.label ?? `${budget.toLocaleString('fr-FR')} FCFA`
+  return {
+    budgetRange,
+    surfaceRange,
+    budget: parseBudgetRangeLabel(formData.budget),
+    surface: parseSurfaceRangeLabel(formData.surface),
+  }
 }
 
 function apiAnalysisToProspect(api: ApiAnalysis, formData: AnalysisFormData): Prospect {
@@ -252,12 +304,12 @@ export async function saveProspect(
     projectType,
     city,
     district,
-    budget: parseNumberRange(formData.budget),
     propertyType: formData.propertyType || undefined,
-    surface: parseNumberRange(formData.surface),
     urgency,
     objective: formData.objective || undefined,
     consentAccepted: true,
+    ...buildAnalysisPayload(formData),
+    ...buildPersonalPayload(formData),
   }
 
   const api = await apiRequest<ApiAnalysis>('/analyses', {
@@ -296,12 +348,12 @@ export async function updateMyProspect(
     projectType,
     city,
     district,
-    budget: parseNumberRange(formData.budget),
     propertyType: formData.propertyType || undefined,
-    surface: parseNumberRange(formData.surface),
     urgency,
     objective: formData.objective || undefined,
     consentAccepted: true,
+    ...buildAnalysisPayload(formData),
+    ...buildPersonalPayload(formData),
   }
 
   const api = await apiRequest<ApiAnalysis>(`/analyses/${id}`, {

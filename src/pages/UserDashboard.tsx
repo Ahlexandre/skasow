@@ -13,6 +13,14 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AnalysisCard from '../components/AnalysisCard'
 import {
+  BudgetSelect,
+  LocationSelect,
+  MaritalStatusSelect,
+  ProfessionSelect,
+  PropertyTypeSelect,
+  SurfaceSelect,
+} from '../components/AnalysisFormSelects'
+import {
   Button,
   EmptyState,
   Input,
@@ -224,19 +232,34 @@ function EditAnalysisForm({
         </label>
         <label className={labelClass}>
           Localisation
-          <Input value={formData.location} onChange={(event) => onChange('location', event.target.value)} />
+          <LocationSelect
+            required
+            value={formData.location}
+            onChange={(value) => onChange('location', value)}
+          />
         </label>
         <label className={labelClass}>
           Budget
-          <Input value={formData.budget} onChange={(event) => onChange('budget', event.target.value)} />
+          <BudgetSelect
+            required
+            value={formData.budget}
+            onChange={(value) => onChange('budget', value)}
+          />
         </label>
         <label className={labelClass}>
           Type de bien
-          <Input value={formData.propertyType} onChange={(event) => onChange('propertyType', event.target.value)} />
+          <PropertyTypeSelect
+            required
+            value={formData.propertyType}
+            onChange={(value) => onChange('propertyType', value)}
+          />
         </label>
         <label className={labelClass}>
           Surface
-          <Input value={formData.surface} onChange={(event) => onChange('surface', event.target.value)} />
+          <SurfaceSelect
+            value={formData.surface}
+            onChange={(value) => onChange('surface', value)}
+          />
         </label>
         <label className={labelClass}>
           Urgence
@@ -249,6 +272,36 @@ function EditAnalysisForm({
         <label className={labelClass + ' md:col-span-2'}>
           Objectif et contraintes
           <Textarea rows={4} value={formData.objective} onChange={(event) => onChange('objective', event.target.value)} />
+        </label>
+        <label className={labelClass}>
+          Metier (facultatif)
+          <ProfessionSelect
+            value={formData.profession}
+            onChange={(value) => onChange('profession', value)}
+          />
+        </label>
+        <label className={labelClass}>
+          Situation familiale (facultatif)
+          <MaritalStatusSelect
+            value={formData.maritalStatus}
+            onChange={(value) => onChange('maritalStatus', value)}
+          />
+        </label>
+        <label className={labelClass}>
+          Enfants (facultatif)
+          <Select value={formData.hasChildren} onChange={(event) => onChange('hasChildren', event.target.value)}>
+            <option value="">Non renseigne</option>
+            <option value="oui">Oui</option>
+            <option value="non">Non</option>
+          </Select>
+        </label>
+        <label className={labelClass}>
+          Nombre d&apos;enfants (facultatif)
+          <Input value={formData.childrenCount} onChange={(event) => onChange('childrenCount', event.target.value)} />
+        </label>
+        <label className={labelClass + ' md:col-span-2'}>
+          Notes personnelles (facultatif)
+          <Textarea rows={3} value={formData.personalNotes} onChange={(event) => onChange('personalNotes', event.target.value)} />
         </label>
       </div>
       <div className="mt-5 flex flex-wrap gap-3">

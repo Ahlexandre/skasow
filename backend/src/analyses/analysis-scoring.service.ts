@@ -136,6 +136,18 @@ export class AnalysisScoringService {
       );
     }
 
+    if (dto.hasChildren === true) {
+      recommendations.push(
+        'Prioriser les biens avec espaces de vie adaptes a la composition familiale.',
+      );
+    }
+
+    if (dto.profession?.trim()) {
+      recommendations.push(
+        'Croiser le projet immobilier avec la stabilite professionnelle declaree.',
+      );
+    }
+
     if (
       missingInfo.length > 0 &&
       missingInfo[0] !== 'Aucun point bloquant identifie'
