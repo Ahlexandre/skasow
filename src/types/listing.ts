@@ -37,6 +37,7 @@ export type ListingApplication = {
   listingId: string
   userId: string
   budget: string
+  phone: string
   profession: string | null
   maritalStatus: string | null
   hasChildren: boolean | null
@@ -76,6 +77,7 @@ export type ListingInput = {
 
 export type ListingApplicationInput = {
   budget: string
+  phone: string
   profession?: string
   maritalStatus?: string
   hasChildren?: boolean

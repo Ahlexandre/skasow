@@ -28,6 +28,7 @@ function cleanListingInput(input: ListingInput) {
 function cleanApplicationInput(input: ListingApplicationInput) {
   return {
     budget: input.budget.trim(),
+    phone: input.phone.trim(),
     profession: input.profession?.trim() || undefined,
     maritalStatus: input.maritalStatus || undefined,
     hasChildren: input.hasChildren,
@@ -38,6 +39,10 @@ function cleanApplicationInput(input: ListingApplicationInput) {
 
 export async function fetchListings(): Promise<Listing[]> {
   return apiRequest<Listing[]>('/listings')
+}
+
+export async function fetchListing(id: string): Promise<Listing> {
+  return apiRequest<Listing>(`/listings/${id}`)
 }
 
 export async function applyToListing(

@@ -195,10 +195,10 @@ export default function ReviewsSection({ maxReviews, showAllLink = false }: Revi
   }
 
   return (
-    <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
+    <section className="border-t border-white/5 px-4 py-16 sm:px-6 sm:py-24 lg:px-16 lg:py-32">
       <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-xl">
-          <span className="label-mono">005 Avis clients</span>
+          <span className="label-mono">Avis clients</span>
           <h2 className="title-display title-2xl mt-5 text-[#EDEAE4]">
             Ce que nos clients<br />
             <span className="text-gold-gradient">pensent de nous</span>
@@ -207,7 +207,7 @@ export default function ReviewsSection({ maxReviews, showAllLink = false }: Revi
           </p>
         </div>
 
-        <div className="w-full max-w-md rounded-[18px] border border-white/6 bg-[#111118] p-6">
+        <div className="w-full max-w-md rounded-[18px] border border-white/6 bg-[#111118] p-4 sm:p-6">
           <h3 className="text-base font-semibold text-[#EDEAE4]">
             {currentUser && myReview ? 'Modifier mon avis' : 'Laisser un avis'}
           </h3>

@@ -56,6 +56,7 @@ export default function AdminListings() {
   const [isLoading, setIsLoading] = useState(true)
   const [isMutating, setIsMutating] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -212,10 +213,17 @@ export default function AdminListings() {
           ) : (
             <div className="flex flex-col gap-3">
               {listings.map((listing) => (
-                <button
+                <article
                   key={listing.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => void selectListing(listing)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      void selectListing(listing)
+                    }
+                  }}
                   className={`rounded-[16px] border p-5 text-left transition ${
                     selectedListing?.id === listing.id
                       ? 'border-[#C9A84C]/40 bg-[#C9A84C]/7'
@@ -227,6 +235,7 @@ export default function AdminListings() {
                       url={listing.imageUrls[0]}
                       title={listing.title}
                       className="mb-4 h-32 w-full rounded-[12px]"
+                      onOpen={() => setPreviewImage({ url: listing.imageUrls[0], title: listing.title })}
                     />
                   ) : null}
                   <div className="flex items-start justify-between gap-4">
@@ -243,7 +252,7 @@ export default function AdminListings() {
                     <Badge>{listing.applicationsCount} interesse(s)</Badge>
                     {listing.surface ? <Badge>{listing.surface} m2</Badge> : null}
                   </div>
-                </button>
+                </article>
               ))}
             </div>
           )}
@@ -342,6 +351,7 @@ export default function AdminListings() {
                           url={url}
                           title="Annonce"
                           className="h-32 w-full"
+                          onOpen={() => setPreviewImage({ url, title: form.title || 'Annonce' })}
                         />
                         <button
                           type="button"
@@ -400,6 +410,12 @@ export default function AdminListings() {
           ) : null}
         </div>
       </div>
+      {previewImage ? (
+        <ImagePreview
+          image={previewImage}
+          onClose={() => setPreviewImage(null)}
+        />
+      ) : null}
     </section>
   )
 }
@@ -408,10 +424,12 @@ function AdminListingImage({
   url,
   title,
   className,
+  onOpen,
 }: {
   url: string
   title: string
   className: string
+  onOpen?: () => void
 }) {
   const [hasError, setHasError] = useState(false)
 
@@ -423,6 +441,27 @@ function AdminListingImage({
     )
   }
 
+  if (onOpen) {
+    return (
+      <button
+        type="button"
+        aria-label={`Voir l'image de ${title}`}
+        onClick={(event) => {
+          event.stopPropagation()
+          onOpen()
+        }}
+        className={`${className} block overflow-hidden bg-[#0F0F16] transition hover:ring-2 hover:ring-[#C9A84C]/40`}
+      >
+        <img
+          src={resolveListingImageUrl(url)}
+          alt={title}
+          className="h-full w-full object-contain"
+          onError={() => setHasError(true)}
+        />
+      </button>
+    )
+  }
+
   return (
     <img
       src={resolveListingImageUrl(url)}
@@ -430,6 +469,43 @@ function AdminListingImage({
       className={`${className} bg-[#0F0F16] object-contain`}
       onError={() => setHasError(true)}
     />
+  )
+}
+
+function ImagePreview({
+  image,
+  onClose,
+}: {
+  image: { url: string; title: string }
+  onClose: () => void
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Image de ${image.title}`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#09090E]/90 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-full w-full max-w-5xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          aria-label="Fermer l'image"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[#09090E]/85 text-[#EDEAE4] transition hover:bg-[#C9A84C] hover:text-[#09090E]"
+        >
+          <X size={18} />
+        </button>
+        <img
+          src={resolveListingImageUrl(image.url)}
+          alt={image.title}
+          className="max-h-[86vh] w-full rounded-[16px] bg-[#0F0F16] object-contain"
+        />
+      </div>
+    </div>
   )
 }
 
@@ -447,7 +523,7 @@ function ApplicationRow({
           <p className="font-semibold text-[#EDEAE4]">
             {application.user.firstName} {application.user.lastName}
           </p>
-          <p className="mt-1 text-xs text-[#5E5B56]">{application.user.email} - {application.user.phone ?? 'Telephone non renseigne'}</p>
+          <p className="mt-1 text-xs text-[#5E5B56]">{application.user.email} - {application.phone || application.user.phone || 'Telephone non renseigne'}</p>
           <div className="mt-4 grid gap-2 text-sm text-[#9E9A94] md:grid-cols-2">
             <Info icon={Building2} label="Budget" value={application.budget} />
             <Info icon={Edit3} label="Metier" value={application.profession ?? 'Non renseigne'} />

@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom'
 import { cn } from '../utils/cn'
 
 /* ── Shells ── */
-export const pageShell  = 'px-6 py-20 lg:px-16 lg:py-28'
-export const narrowShell = 'mx-auto max-w-3xl px-6 py-20 lg:px-16 lg:py-28'
+export const pageShell  = 'px-4 py-14 sm:px-6 sm:py-18 lg:px-10 lg:py-20 2xl:px-16 2xl:py-28'
+export const narrowShell = 'mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-18 lg:px-10 lg:py-20 2xl:px-16 2xl:py-28'
 
 /* ── Primitives ── */
 export const labelClass =
@@ -17,10 +17,10 @@ export const selectClass = 'input-dark appearance-none cursor-pointer'
 export const textareaClass = 'input-dark resize-none leading-7'
 
 export const primaryButton =
-  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#09090E] transition-all duration-200 hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)] hover:-translate-y-px active:translate-y-0 focus:outline-none focus:shadow-[0_0_0_3px_rgba(201,168,76,0.25)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none'
+  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2.5 text-center text-sm font-semibold text-[#09090E] transition-all duration-200 hover:bg-[#DDB96A] hover:shadow-[0_4px_24px_rgba(201,168,76,0.22)] hover:-translate-y-px active:translate-y-0 focus:outline-none focus:shadow-[0_0_0_3px_rgba(201,168,76,0.25)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none sm:px-6'
 
 export const secondaryButton =
-  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all duration-200 hover:border-[#C9A84C]/30 hover:text-[#EDEAE4] hover:-translate-y-px active:translate-y-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40'
+  'inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-center text-sm font-medium text-[#9E9A94] transition-all duration-200 hover:border-[#C9A84C]/30 hover:text-[#EDEAE4] hover:-translate-y-px active:translate-y-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 sm:px-6'
 
 export const ghostButton =
   'inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-[#5E5B56] transition-all duration-200 hover:bg-white/5 hover:text-[#EDEAE4] focus:outline-none'
@@ -91,7 +91,7 @@ export function SectionHeader({ eyebrow, title, description, centered = false }:
       {eyebrow && (
         <p className="label-mono mb-4">{eyebrow}</p>
       )}
-      <h1 className="title-display title-xl text-[#EDEAE4]">{title}</h1>
+      <h1 className="title-display title-xl break-words text-[#EDEAE4]">{title}</h1>
       {description && (
         <p className="mt-5 text-base leading-8 text-[#9E9A94]">{description}</p>
       )}
@@ -129,7 +129,7 @@ export function ButtonLink({ to, variant = 'primary', children, className }: But
 type EmptyStateProps = { title: string; description: string; action?: ReactNode }
 export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="rounded-[20px] border border-dashed border-white/8 bg-white/[0.02] p-12 text-center">
+    <div className="rounded-[20px] border border-dashed border-white/8 bg-white/[0.02] p-6 text-center sm:p-12">
       <p className="text-base font-semibold text-[#EDEAE4]">{title}</p>
       <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-[#5E5B56]">{description}</p>
       {action && <div className="mt-6 flex justify-center">{action}</div>}

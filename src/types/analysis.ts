@@ -34,6 +34,8 @@ export type AnalysisFormData = {
   hasChildren: ChildrenAnswer
   childrenCount: string
   personalNotes: string
+  firstName: string
+  lastName: string
   name: string
   email: string
   phone: string

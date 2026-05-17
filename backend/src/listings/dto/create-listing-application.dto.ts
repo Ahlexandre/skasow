@@ -21,6 +21,12 @@ export class CreateListingApplicationDto {
   @MaxLength(120)
   budget: string;
 
+  @ApiProperty({ example: '+223 70 00 00 00' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  phone: string;
+
   @ApiPropertyOptional({ example: 'Entrepreneur' })
   @IsOptional()
   @IsString()

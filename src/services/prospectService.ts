@@ -232,6 +232,8 @@ function apiAnalysisToFormData(api: ApiAnalysis, user?: User): AnalysisFormData 
         ? String(api.childrenCount)
         : '',
     personalNotes: api.personalNotes ?? '',
+    firstName: api.user.firstName,
+    lastName: api.user.lastName,
     name: `${api.user.firstName} ${api.user.lastName}`.trim(),
     email: api.user.email,
     phone: api.user.phone ?? user?.phone ?? '',
@@ -319,9 +321,11 @@ export async function saveProspect(
 
   const prospect = apiAnalysisToProspect(api, {
     ...formData,
-    email: formData.email || user.email,
-    phone: formData.phone || user.phone,
-    name: formData.name || `${user.firstName} ${user.lastName}`.trim(),
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    name: `${user.firstName} ${user.lastName}`.trim(),
   })
 
   return prospect

@@ -4,7 +4,7 @@ import { realEstateServices, serviceNavAnchors, serviceSlugs } from '../data/ser
 
 export default function HomeServicesSection() {
   return (
-    <section id="services" className="scroll-mt-24 px-6 py-24 lg:px-16 lg:py-32">
+    <section id="services" className="scroll-mt-24 px-4 py-16 sm:px-6 sm:py-24 lg:px-16 lg:py-32">
       <div className="mb-14">
         <span className="label-mono">002 — Services</span>
         <h2 className="title-display title-xl mt-4 text-[#EDEAE4]">Ce que nous faisons</h2>

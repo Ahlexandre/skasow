@@ -28,18 +28,18 @@ export default function Home() {
     <div className="overflow-x-hidden">
 
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-          HERO â€” typographie pure, sans image
+          HERO — typographie pure, sans image
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="px-6 pb-20 pt-20 lg:px-16 lg:pt-28 lg:pb-24">
+      <section className="px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-20 lg:px-16 lg:pt-28 lg:pb-24">
 
         {/* Label editorial haut */}
         <div className="flex items-center justify-between border-b border-white/5 pb-6">
-          <span className="label-mono">001 Immobilier Mali</span>
-          <span className="label-mono">2025</span>
+          <span className="label-mono">Immobilier Mali</span>
+          <span className="label-mono">2026</span>
         </div>
 
         {/* Titre principal */}
-        <div className="mt-14 max-w-4xl">
+        <div className="mt-10 max-w-4xl sm:mt-14">
           <h1 className="title-display title-3xl text-[#EDEAE4]">
             Votre partenaire<br />
             <span className="text-gold-gradient">immobilier</span><br />
@@ -48,32 +48,32 @@ export default function Home() {
         </div>
 
         {/* Ligne sous le titre : description + CTA */}
-        <div className="mt-12 flex flex-col gap-8 border-t border-white/5 pt-10 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mt-10 flex flex-col gap-8 border-t border-white/5 pt-8 lg:mt-12 lg:flex-row lg:items-end lg:justify-between lg:pt-10">
           <p className="max-w-xl text-base leading-8 text-[#9E9A94]">
             DS Conseil vous accompagne dans vos projets d'achat, de location,
             de vente et d'investissement grâce à une analyse claire, rapide et
             personnalisee.
           </p>
-          <div className="flex flex-shrink-0 flex-wrap gap-3">
-            <Link to="/pre-analysis" className={primaryButton}>
+          <div className="flex w-full flex-shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+            <Link to="/pre-analysis" className={`${primaryButton} w-full sm:w-auto`}>
               Analyse gratuite
               <ArrowRight size={16} strokeWidth={2.5} />
             </Link>
             <Link to="/#services"
-              className="inline-flex min-h-[46px] items-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all hover:border-[#C9A84C]/30 hover:text-[#EDEAE4]">
+              className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full border border-white/10 px-6 py-2.5 text-sm font-medium text-[#9E9A94] transition-all hover:border-[#C9A84C]/30 hover:text-[#EDEAE4] sm:w-auto">
               Nos services
             </Link>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="mt-14 grid grid-cols-3 gap-6 border-t border-white/5 pt-10 sm:grid-cols-3 lg:max-w-lg">
+        <div className="mt-12 grid gap-4 border-t border-white/5 pt-8 sm:grid-cols-3 sm:gap-6 lg:mt-14 lg:max-w-lg lg:pt-10">
           {[
             { v: '24h', l: 'Rappel prioritaire' },
             { v: '100', l: 'Score de maturite' },
             { v: '4+',  l: 'Services couverts' },
           ].map(({ v, l }) => (
-            <div key={l}>
+            <div key={l} className="rounded-[14px] border border-white/6 bg-white/[0.02] p-4 sm:border-0 sm:bg-transparent sm:p-0">
               <p className="title-display title-xl text-[#C9A84C]">{v}</p>
               <p className="mt-2 text-xs leading-5 text-[#5E5B56]">{l}</p>
             </div>
@@ -96,14 +96,14 @@ export default function Home() {
       </div>
 
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-          SERVICES â€” grille bento
+          SERVICES — grille bento
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <HomeServicesSection />
 
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           ANALYSE DOSSIER
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
+      <section className="border-t border-white/5 px-4 py-16 sm:px-6 sm:py-24 lg:px-16 lg:py-32">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
 
           {/* Texte */}
@@ -136,7 +136,7 @@ export default function Home() {
             </div>
 
             <Link to="/pre-analysis"
-              className="mt-12 inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-7 py-3.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)]">
+              className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-7 py-3.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0_4px_24px_rgba(201,168,76,0.22)] sm:mt-12 sm:w-auto">
               Lancer mon analyse
               <ArrowRight size={15} strokeWidth={2.5} />
             </Link>
@@ -175,12 +175,12 @@ export default function Home() {
                   style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.12)' }}>
                   <p className="label-mono text-[#C9A84C]/60">Prochaine action</p>
                   <p className="mt-2 text-sm leading-6 text-[#9E9A94]">
-                    Rappel sous 24h â€” dossier complet, budget coherent avec le marche.
+                    Rappel sous 24h — dossier complet, budget coherent avec le marche.
                   </p>
                 </div>
               </div>
 
-              <div className="ml-6 mt-3 rounded-[12px] p-4"
+              <div className="mt-3 rounded-[12px] p-4 sm:ml-6"
                 style={{ background: '#1A1A24', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="flex items-center gap-3">
                   <BrainCircuit size={15} className="text-[#C9A84C]" strokeWidth={1.75} />
@@ -197,10 +197,10 @@ export default function Home() {
       {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           CTA FINAL
       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/5 px-6 py-24 lg:px-16 lg:py-32">
+      <section className="border-t border-white/5 px-4 py-16 sm:px-6 sm:py-24 lg:px-16 lg:py-32">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span className="label-mono">004 â€” Commencer</span>
+            <span className="label-mono">004 — Commencer</span>
             <h2 className="title-display title-2xl mt-5 text-[#EDEAE4]">
               Pret a demarrer<br />
               <span className="text-gold-gradient">votre projet ?</span>
@@ -210,9 +210,9 @@ export default function Home() {
               sur les points qui comptent vraiment.
             </p>
           </div>
-          <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row">
+          <div className="flex w-full flex-shrink-0 flex-col gap-3 sm:w-auto sm:flex-row">
             <Link to="/pre-analysis"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-8 py-4 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)]">
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-8 py-4 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0_4px_24px_rgba(201,168,76,0.22)]">
               Analyse gratuite <ArrowRight size={15} strokeWidth={2.5} />
             </Link>
             <Link to="/contact"
@@ -222,9 +222,9 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-16 flex items-center justify-between border-t border-white/5 pt-8">
-          <span className="label-mono">DS Conseil Immobilier â€” Bamako, Mali</span>
-          <span className="label-mono">2025</span>
+        <div className="mt-16 flex flex-col gap-3 border-t border-white/5 pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <span className="label-mono">DS Conseil Immobilier — Bamako, Mali</span>
+          <span className="label-mono">2026</span>
         </div>
       </section>
 

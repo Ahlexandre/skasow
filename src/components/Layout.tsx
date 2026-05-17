@@ -18,22 +18,27 @@ export default function Layout() {
       </div>
 
       {isDashboard ? (
-        <div className="relative z-10 flex min-h-screen">
-          <Navbar sidebar />
-          <main className="flex flex-1 flex-col overflow-hidden">
-            <Outlet />
-          </main>
-        </div>
+        <>
+          <div className="relative z-20 lg:hidden">
+            <Navbar />
+          </div>
+          <div className="relative z-10 flex min-h-screen min-w-0">
+            <Navbar sidebar />
+            <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+              <Outlet />
+            </main>
+          </div>
+        </>
       ) : (
         <>
           <Navbar />
           <main className="relative z-10">
             <Outlet />
           </main>
-          <FloatingChatbot />
           <Footer />
         </>
       )}
+      <FloatingChatbot />
     </div>
   )
 }

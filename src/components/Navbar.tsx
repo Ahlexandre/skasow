@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/useAuth'
 
 function navLinkClass(active: boolean) {
   return (
-    'text-sm transition-colors duration-150 ' +
+    'whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150 ' +
     (active ? 'text-[#C9A84C]' : 'text-[#5E5B56] hover:text-[#EDEAE4]')
   )
 }
@@ -36,6 +36,9 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
   const { currentUser, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const visibleSecondaryNavLinks = currentUser
+    ? secondaryNavLinks
+    : secondaryNavLinks.filter((link) => link.to !== '/pre-analysis')
 
   const handleLogout = async () => { await logout(); setIsOpen(false); navigate('/') }
 
@@ -120,19 +123,19 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40"
       style={{ background: 'rgba(9,9,14,0.88)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-16">
+      <div className="mx-auto flex max-w-7xl items-center gap-5 px-6 py-3 lg:px-8 2xl:px-16">
 
-        <Link to="/" className="group flex items-center" onClick={() => setIsOpen(false)} aria-label="DS Conseil Immobilier">
+        <Link to="/" className="group flex shrink-0 items-center" onClick={() => setIsOpen(false)} aria-label="DS Conseil Immobilier">
           <img
             src="/logo_ds_conseil.png"
             alt="DS Conseil Immobilier"
-            className="h-20 w-auto max-w-[200px] rounded-[8px] object-contain transition-opacity group-hover:opacity-85"
+            className="h-14 w-auto max-w-[150px] rounded-[8px] object-contain transition-opacity group-hover:opacity-85"
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 xl:gap-8 lg:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-white/6 bg-white/[0.02] px-5 py-2 xl:flex">
           {publicNavLinks.map((link) => renderHomeNavLink(link))}
-          {secondaryNavLinks.map((link) => (
+          {visibleSecondaryNavLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
@@ -143,25 +146,25 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-5 lg:flex">
+        <div className="ml-auto hidden shrink-0 items-center gap-3 xl:flex">
           {currentUser ? (
             <>
               <NavLink to={isAdmin ? '/admin/dashboard' : '/mon-espace'}
-                className="text-sm text-[#5E5B56] transition-colors hover:text-[#EDEAE4]">
+                className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-[#5E5B56] transition-colors hover:text-[#EDEAE4]">
                 {isAdmin ? 'Admin' : 'Mon espace'}
               </NavLink>
               <button type="button" onClick={handleLogout}
-                className="text-sm text-[#5E5B56] transition-colors hover:text-red-400">
+                className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-[#5E5B56] transition-colors hover:text-red-400">
                 Deconnexion
               </button>
             </>
           ) : (
             <>
-              <NavLink to="/auth" className="text-sm text-[#5E5B56] transition-colors hover:text-[#EDEAE4]">
+              <NavLink to="/auth" className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-[#5E5B56] transition-colors hover:text-[#EDEAE4]">
                 Connexion
               </NavLink>
               <Link to="/pre-analysis"
-                className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2.5 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0 4px 24px rgba(201,168,76,0.22)]">
+                className="inline-flex min-h-[42px] items-center gap-2 whitespace-nowrap rounded-full bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#09090E] transition-all hover:bg-[#DDB96A] hover:shadow-[0_4px_24px_rgba(201,168,76,0.22)]">
                 Analyse gratuite <ArrowRight size={14} strokeWidth={2.5} />
               </Link>
             </>
@@ -169,18 +172,22 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
         </div>
 
         <button type="button" aria-label="Menu"
-          className="flex h-9 w-9 items-center justify-center text-[#9E9A94] transition hover:text-[#EDEAE4] lg:hidden"
+          className="ml-auto flex h-9 w-9 items-center justify-center text-[#9E9A94] transition hover:text-[#EDEAE4] xl:hidden"
           onClick={() => setIsOpen((v) => !v)}>
           {isOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
         </button>
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 top-[57px] z-50 flex flex-col px-6 py-10 lg:hidden"
-          style={{ background: '#09090E' }}>
+        <div className="fixed inset-0 top-[81px] z-50 xl:hidden">
+          <div className="absolute inset-0 bg-[#09090E]/80 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
+          <div
+            className="relative mx-3 mt-3 flex max-h-[calc(100vh-6.5rem)] flex-col overflow-y-auto rounded-[22px] border border-[#C9A84C]/18 bg-[#111118] px-5 py-6 shadow-[0_24px_70px_rgba(0,0,0,0.55)]"
+            style={{ backgroundImage: 'linear-gradient(145deg, rgba(201,168,76,0.10), rgba(17,17,24,0.98) 34%, rgba(15,15,22,0.98))' }}
+          >
           <nav className="flex flex-col gap-1">
             {publicNavLinks.map((link) => renderHomeNavLink(link, true))}
-            {secondaryNavLinks.map((link) => (
+            {visibleSecondaryNavLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -209,6 +216,7 @@ export default function Navbar({ sidebar = false }: NavbarProps) {
                 </NavLink>
               </>
             )}
+          </div>
           </div>
         </div>
       )}

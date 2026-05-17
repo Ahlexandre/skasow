@@ -145,6 +145,7 @@ model ListingApplication {
   listingId      String
   userId         String
   budget         String
+  phone          String
   profession     String?
   maritalStatus  MaritalStatus?
   hasChildren    Boolean?

@@ -2,6 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import PrivacyPolicyLink from '../components/PrivacyPolicyLink'
 import { Input, Select, Textarea, labelClass } from '../components/ui'
+import { digitsOnly, numericPhoneInputProps } from '../utils/phone'
+import {
+  DS_WHATSAPP_DISPLAY,
+  buildGeneralWhatsAppUrl,
+} from '../utils/whatsapp'
 
 const NEEDS = ['Achat', 'Location', 'Vente', 'Investissement', 'Gestion immobiliere', 'Accompagnement administratif', 'Autre']
 const slugToLabel: Record<string, string> = {
@@ -38,7 +43,7 @@ export default function Contact() {
             {[
               ['Adresse', 'Bamako, Mali'],
               ['Email', 'contact@dsconseil-immo.ml'],
-              ['Telephone', '+223 70 00 00 00'],
+              ['Telephone', DS_WHATSAPP_DISPLAY],
             ].map(([label, value]) => (
               <div key={label} className="flex flex-col gap-1.5 border-b border-white/5 py-6">
                 <span className="label-mono">{label}</span>
@@ -46,6 +51,14 @@ export default function Contact() {
               </div>
             ))}
           </div>
+          <a
+            href={buildGeneralWhatsAppUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-[#06110B] transition hover:bg-emerald-400 sm:w-auto"
+          >
+            Discuter sur WhatsApp
+          </a>
         </div>
 
         {/* Formulaire */}
@@ -65,7 +78,14 @@ export default function Contact() {
                 <span className="flex items-center rounded-l-[14px] border border-r-0 border-white/10 bg-white/5 px-3 text-sm text-[#5E5B56] whitespace-nowrap">
                   +223
                 </span>
-                <Input placeholder="7X XX XX XX" className="rounded-l-none" />
+                <Input
+                  {...numericPhoneInputProps}
+                  placeholder="7X XX XX XX"
+                  className="rounded-l-none"
+                  onChange={(event) => {
+                    event.currentTarget.value = digitsOnly(event.currentTarget.value)
+                  }}
+                />
               </div>
               <span className="text-[10px] leading-5 text-[#5E5B56]">
                 Indicatif Mali (+223) déjà inclus — saisissez uniquement votre numero local.

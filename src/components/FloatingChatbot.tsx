@@ -79,15 +79,15 @@ export default function FloatingChatbot() {
   const showContactLink = lastIntent === 'CONTACT' || lastIntent === 'GENERAL'
   const panelSizeClass = isExpanded
     ? 'w-full sm:w-[42rem] sm:max-w-[calc(100vw-3rem)]'
-    : 'w-full max-w-[22rem]'
+    : 'w-full sm:max-w-[22rem]'
   const messagesSizeClass = isExpanded
-    ? 'h-[52vh] min-h-[20rem] max-h-[32rem]'
-    : 'max-h-[20rem]'
+    ? 'h-[50vh] min-h-[16rem] max-h-[32rem] sm:h-[52vh] sm:min-h-[20rem]'
+    : 'max-h-[48vh] sm:max-h-[20rem]'
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:inset-x-auto sm:bottom-6 sm:right-6">
+    <div className="fixed inset-x-3 bottom-3 z-50 flex flex-col items-end gap-3 sm:inset-x-auto sm:bottom-6 sm:right-6">
       {isOpen && !isMinimized && (
-        <div className={`anim-scale-in max-h-[calc(100vh-6rem)] overflow-hidden rounded-[24px] ${panelSizeClass}`}
+        <div className={`anim-scale-in max-h-[calc(100vh-5rem)] overflow-hidden rounded-[20px] sm:rounded-[24px] ${panelSizeClass}`}
           style={{ background: 'rgba(17,17,24,0.97)', backdropFilter: 'blur(24px)', border: '1px solid rgba(201,168,76,0.15)', boxShadow: '0 24px 64px rgba(0,0,0,0.6), 0 0 40px rgba(201,168,76,0.06)' }}>
 
           {/* Header */}
@@ -213,7 +213,15 @@ export default function FloatingChatbot() {
       <button type="button" aria-label="Ouvrir le chatbot"
         className="chatbot-trigger flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[#0A0A0F] transition-all duration-300 hover:-translate-y-1 focus:outline-none"
         style={{ background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', boxShadow: '0 4px 20px rgba(201,168,76,0.5)' }}
-        onClick={() => { setIsOpen(true); setIsMinimized(false) }}>
+        onClick={() => {
+          if (isOpen) {
+            setIsOpen(false)
+            setIsMinimized(false)
+            return
+          }
+          setIsOpen(true)
+          setIsMinimized(false)
+        }}>
         {isOpen ? <X size={22} strokeWidth={2} /> : <MessageCircle size={22} strokeWidth={1.75} />}
       </button>
     </div>

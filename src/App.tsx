@@ -11,6 +11,7 @@ import Contact from './pages/Contact'
 import FAQ from './pages/FAQ'
 import Privacy from './pages/Privacy'
 import Home from './pages/Home'
+import ListingDetail from './pages/ListingDetail'
 import Listings from './pages/Listings'
 import PreAnalysis from './pages/PreAnalysis'
 import Reviews from './pages/Reviews'
@@ -36,6 +37,7 @@ function App() {
             <Route path="privacy" element={<Privacy />} />
             <Route path="avis" element={<Reviews />} />
             <Route path="annonces" element={<Listings />} />
+            <Route path="annonces/:id" element={<ListingDetail />} />
             <Route path="auth" element={<Auth />} />
             <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route

@@ -4,22 +4,43 @@ import { Input, labelClass, primaryButton } from '../components/ui'
 import { useAuth } from '../contexts/useAuth'
 import type { LoginInput, RegisterInput } from '../types/user'
 import { cn } from '../utils/cn'
+import { digitsOnly, numericPhoneInputProps, toMaliPhone } from '../utils/phone'
 
 type AuthMode = 'login' | 'register'
+type AuthLocationState = {
+  from?: string
+  mode?: AuthMode
+  registerPrefill?: Partial<RegisterInput>
+}
+
 const initialRegister: RegisterInput = { firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }
 const initialLogin: LoginInput = { email: '', password: '' }
+
+function getAuthState(state: unknown): AuthLocationState {
+  if (!state || typeof state !== 'object') return {}
+  return state as AuthLocationState
+}
 
 export default function Auth() {
   const { login, register } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [mode, setMode] = useState<AuthMode>('login')
-  const [loginForm, setLoginForm] = useState(initialLogin)
-  const [registerForm, setRegisterForm] = useState(initialRegister)
+  const authState = getAuthState(location.state)
+  const [mode, setMode] = useState<AuthMode>(authState.mode === 'register' ? 'register' : 'login')
+  const [loginForm, setLoginForm] = useState<LoginInput>({
+    ...initialLogin,
+    email: authState.registerPrefill?.email ?? '',
+  })
+  const [registerForm, setRegisterForm] = useState<RegisterInput>({
+    ...initialRegister,
+    ...authState.registerPrefill,
+    password: '',
+    confirmPassword: '',
+  })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const from = typeof location.state === 'object' && location.state && 'from' in location.state && typeof location.state.from === 'string' ? location.state.from : ''
+  const from = typeof authState.from === 'string' ? authState.from : ''
 
   const redirectAfterAuth = (role: string) => {
     navigate(role === 'admin' ? '/admin/dashboard' : (from || '/mon-espace'), { replace: true })
@@ -102,8 +123,9 @@ export default function Auth() {
                   <span className="flex items-center rounded-l-[14px] border border-r-0 border-white/12 bg-white/5 px-3 text-sm text-[#6B6760] whitespace-nowrap">+223</span>
                   <Input
                     required
-                    value={registerForm.phone.replace(/^\+223\s?/, '')}
-                    onChange={(e) => setRegisterForm((c) => ({ ...c, phone: e.target.value ? '+223 ' + e.target.value : '' }))}
+                    {...numericPhoneInputProps}
+                    value={digitsOnly(registerForm.phone.replace(/^\+223\s?/, ''))}
+                    onChange={(e) => setRegisterForm((c) => ({ ...c, phone: toMaliPhone(e.target.value) }))}
                     placeholder="7X XX XX XX"
                     className="rounded-l-none"
                   />

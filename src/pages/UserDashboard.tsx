@@ -110,21 +110,21 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="px-6 py-10 lg:px-10 lg:py-12">
-      <div className="mb-10 flex items-start justify-between border-b border-white/5 pb-8">
-        <div>
+    <div className="px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
+      <div className="mb-8 flex flex-col gap-5 border-b border-white/5 pb-6 sm:mb-10 sm:flex-row sm:items-start sm:justify-between sm:pb-8">
+        <div className="min-w-0">
           <span className="font-mono text-[10px] tracking-[0.2em] text-[#6B6760] uppercase">Mon espace</span>
-          <h1 className="mt-2 font-display text-3xl tracking-[-0.03em] text-[#F0EDE8]">
+          <h1 className="mt-2 break-words font-display text-2xl tracking-[-0.03em] text-[#F0EDE8] sm:text-3xl">
             {currentUser.firstName} {currentUser.lastName}
           </h1>
-          <p className="mt-1 text-sm text-[#6B6760]">{currentUser.email}</p>
+          <p className="mt-1 break-all text-sm text-[#6B6760]">{currentUser.email}</p>
         </div>
-        <Button variant="ghost" onClick={handleLogout}>
+        <Button variant="ghost" className="w-full sm:w-auto" onClick={handleLogout}>
           <LogOut size={15} strokeWidth={1.75} /> Deconnexion
         </Button>
       </div>
 
-      <div className="mb-10 grid grid-cols-2 gap-3">
+      <div className="mb-8 grid gap-3 sm:mb-10 sm:grid-cols-2">
         {[
           { icon: FileCheck2, label: 'Pre-analyses', value: String(prospects.length) },
           { icon: UserRound, label: 'À compléter', value: String(prospects.filter((p) => p.status === 'À compléter').length) },
@@ -137,13 +137,13 @@ export default function UserDashboard() {
         ))}
       </div>
 
-      <Link to="/pre-analysis" className={primaryButton + ' mb-10 w-fit'}>
+      <Link to="/pre-analysis" className={primaryButton + ' mb-4 w-full sm:mb-10 sm:w-fit'}>
         Nouvelle pre-analyse <ArrowRight size={15} strokeWidth={2} />
       </Link>
 
       <Link
         to="/mes-donnees"
-        className="mb-10 flex w-fit items-center gap-2 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/8 px-5 py-2.5 text-sm font-semibold text-[#C9A84C] transition hover:bg-[#C9A84C]/14"
+        className="mb-10 flex w-full items-center justify-center gap-2 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/8 px-5 py-2.5 text-center text-sm font-semibold text-[#C9A84C] transition hover:bg-[#C9A84C]/14 sm:w-fit"
       >
         <Shield size={15} strokeWidth={1.75} />
         Gerer mes donnees et suppressions
@@ -161,8 +161,8 @@ export default function UserDashboard() {
         <div className="flex flex-col gap-5">
           {prospects.map((prospect) => (
             <div key={prospect.id} className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-3 rounded-[16px] border border-white/6 bg-[#111118] p-4">
-                <Button variant="secondary" onClick={() => startEdit(prospect)} disabled={savingId === prospect.id}>
+              <div className="flex flex-col gap-3 rounded-[16px] border border-white/6 bg-[#111118] p-4 sm:flex-row sm:flex-wrap">
+                <Button variant="secondary" className="w-full sm:w-auto" onClick={() => startEdit(prospect)} disabled={savingId === prospect.id}>
                   <Pencil size={15} strokeWidth={1.9} /> Modifier
                 </Button>
               </div>
@@ -292,11 +292,11 @@ function EditAnalysisForm({
           <Textarea rows={3} value={formData.personalNotes} onChange={(event) => onChange('personalNotes', event.target.value)} />
         </label>
       </div>
-      <div className="mt-5 flex flex-wrap gap-3">
-        <Button onClick={onSave} disabled={isSaving}>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Button className="w-full sm:w-auto" onClick={onSave} disabled={isSaving}>
           <Save size={15} strokeWidth={1.9} /> {isSaving ? 'Enregistrement...' : 'Enregistrer'}
         </Button>
-        <Button variant="ghost" onClick={onCancel} disabled={isSaving}>
+        <Button variant="ghost" className="w-full sm:w-auto" onClick={onCancel} disabled={isSaving}>
           <X size={15} strokeWidth={1.9} /> Annuler
         </Button>
       </div>

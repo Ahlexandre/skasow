@@ -221,6 +221,7 @@ export class ListingsService {
         listingId,
         userId,
         budget: dto.budget.trim(),
+        phone: dto.phone.trim(),
         profession: this.optionalText(dto.profession),
         maritalStatus: dto.maritalStatus,
         hasChildren: dto.hasChildren,
@@ -291,6 +292,7 @@ export class ListingsService {
       where: { id },
       data: {
         budget: dto.budget?.trim(),
+        phone: dto.phone?.trim(),
         profession:
           dto.profession === undefined
             ? undefined
@@ -483,6 +485,7 @@ export class ListingsService {
       listingId: application.listingId,
       userId: application.userId,
       budget: application.budget,
+      phone: application.phone,
       profession: application.profession,
       maritalStatus: application.maritalStatus,
       hasChildren: application.hasChildren,

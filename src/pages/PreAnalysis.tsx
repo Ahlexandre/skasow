@@ -19,6 +19,7 @@ import type { AnalysisFormData, AnalysisResult, ProjectType } from '../types/ana
 import { hasPersonalProfile } from '../types/analysis'
 import type { Prospect } from '../types/prospect'
 import { cn } from '../utils/cn'
+import { digitsOnly, numericPhoneInputProps, toMaliPhone } from '../utils/phone'
 import { readStorage, removeStorage, writeStorage } from '../utils/storage'
 
 const DRAFT_KEY = 'ds-pending-analysis-draft'
@@ -35,12 +36,15 @@ const initialForm: AnalysisFormData = {
   hasChildren: '',
   childrenCount: '',
   personalNotes: '',
+  firstName: '',
+  lastName: '',
   name: '',
   email: '',
   phone: '',
   consent: false,
 }
-const steps = ['Projet', 'Localisation', 'Budget', 'Objectif', 'Profil', 'Coordonnees', 'Confirmation', 'Resultat']
+const guestSteps = ['Projet', 'Localisation', 'Budget', 'Objectif', 'Profil', 'Coordonnees', 'Confirmation', 'Resultat']
+const authenticatedSteps = ['Projet', 'Localisation', 'Budget', 'Objectif', 'Profil', 'Confirmation', 'Resultat']
 
 const projectOptions: Array<{ value: ProjectType; title: string; text: string; icon: typeof Home }> = [
   { value: 'Acheter',  title: 'Acheter',   text: 'Trouver un bien fiable et adapte a votre budget.',           icon: Home },
@@ -64,11 +68,32 @@ export default function PreAnalysis() {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const [transmissionConsent, setTransmissionConsent] = useState(false)
 
-  const completedFields = [formData.projectType, formData.location, formData.budget, formData.propertyType, formData.objective].filter(Boolean).length
-  const progressStep = result ? 7 : awaitingConfirmation ? 6 : currentStep
+  const steps = currentUser ? authenticatedSteps : guestSteps
+  const confirmationStep = steps.length - 2
+  const resultStep = steps.length - 1
+  const contactStep = currentUser ? -1 : 5
+  const progressStep = result ? resultStep : awaitingConfirmation ? confirmationStep : currentStep
+  const progressPercent = Math.round(((progressStep + 1) / steps.length) * 100)
+  const contactIsComplete = Boolean(
+    formData.firstName.trim() &&
+      formData.lastName.trim() &&
+      formData.email.trim() &&
+      formData.phone.trim(),
+  )
 
   const updateField = (field: keyof AnalysisFormData, value: string | boolean) => {
     setFormData((c) => ({ ...c, [field]: value }))
+    setAuthRequired(false); setAwaitingConfirmation(false)
+  }
+
+  const updateContactField = (field: 'firstName' | 'lastName' | 'email' | 'phone', value: string) => {
+    setFormData((current) => {
+      const next = { ...current, [field]: value }
+      return {
+        ...next,
+        name: `${next.firstName} ${next.lastName}`.trim(),
+      }
+    })
     setAuthRequired(false); setAwaitingConfirmation(false)
   }
 
@@ -78,11 +103,27 @@ export default function PreAnalysis() {
     (currentStep === 2 && Boolean(formData.budget.trim()) && Boolean(formData.propertyType.trim())) ||
     (currentStep === 3 && Boolean(formData.objective.trim())) ||
     currentStep === 4 ||
-    currentStep === 5 ||
-    (currentStep === 6 && formData.consent)
+    (!currentUser && currentStep === contactStep && contactIsComplete) ||
+    (currentStep === confirmationStep && formData.consent)
 
-  const goNext = () => { if (!canContinue) return; setCurrentStep((s) => Math.min(s + 1, 6)) }
+  const goNext = () => { if (!canContinue) return; setCurrentStep((s) => Math.min(s + 1, confirmationStep)) }
   const goBack = () => { setCurrentStep((s) => Math.max(s - 1, 0)); setAuthRequired(false); setAwaitingConfirmation(false) }
+
+  const goToAuth = () => {
+    writeStorage(DRAFT_KEY, formData)
+    navigate('/auth', {
+      state: {
+        from: '/pre-analysis',
+        mode: 'register',
+        registerPrefill: {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+        },
+      },
+    })
+  }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -98,9 +139,11 @@ export default function PreAnalysis() {
     try {
       const enriched = {
         ...formData,
-        name: formData.name || `${currentUser.firstName} ${currentUser.lastName}`.trim(),
-        email: formData.email || currentUser.email,
-        phone: formData.phone || currentUser.phone,
+        firstName: currentUser.firstName,
+        lastName: currentUser.lastName,
+        name: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+        email: currentUser.email,
+        phone: currentUser.phone,
       }
       // Génération locale pour affichage immédiat, puis envoi au backend
       const localAnalysis = generateAnalysis(enriched)
@@ -140,19 +183,19 @@ export default function PreAnalysis() {
           {/* Header form */}
           <div className="flex items-center justify-between p-6 lg:p-8" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <div>
-              <span className="font-mono text-xs text-[#6B6760]">Etape {Math.min(progressStep + 1, 8)}/8</span>
+              <span className="font-mono text-xs text-[#6B6760]">Etape {Math.min(progressStep + 1, steps.length)}/{steps.length}</span>
               <h2 className="mt-1 font-display text-xl text-[#F0EDE8]">{steps[progressStep]}</h2>
             </div>
             <div className="text-right">
-              <span className="font-display text-2xl text-[#C9A84C]">{completedFields}</span>
-              <span className="text-sm text-[#6B6760]">/5</span>
-              <p className="text-[10px] text-[#6B6760]">infos cles</p>
+              <span className="font-display text-2xl text-[#C9A84C]">{Math.min(progressStep + 1, steps.length)}</span>
+              <span className="text-sm text-[#6B6760]">/{steps.length}</span>
+              <p className="text-[10px] text-[#6B6760]">etapes</p>
             </div>
           </div>
 
           {/* Progress bar */}
           <div className="h-[2px] bg-white/5">
-            <div className="progress-gold h-full" style={{ width: ((completedFields / 5) * 100) + "%" }} />
+            <div className="progress-gold h-full" style={{ width: progressPercent + "%" }} />
           </div>
 
           {/* Corps */}
@@ -292,17 +335,20 @@ export default function PreAnalysis() {
                 </label>
               </div>
             )}
-            {currentStep === 5 && (
-              <div className="grid gap-5 sm:grid-cols-3">
-                <label className={labelClass}>Nom<Input value={formData.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Facultatif" /></label>
-                <label className={labelClass}>Email<Input type="email" value={formData.email} onChange={(e) => updateField('email', e.target.value)} placeholder="Facultatif" /></label>
+            {!currentUser && currentStep === contactStep && (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className={labelClass}>Prenom<Input required value={formData.firstName} onChange={(e) => updateContactField('firstName', e.target.value)} placeholder="Prenom" /></label>
+                <label className={labelClass}>Nom<Input required value={formData.lastName} onChange={(e) => updateContactField('lastName', e.target.value)} placeholder="Nom" /></label>
+                <label className={labelClass}>Email<Input required type="email" value={formData.email} onChange={(e) => updateContactField('email', e.target.value)} placeholder="vous@email.com" /></label>
                 <label className={labelClass}>
                   Telephone
                   <div className="flex">
                     <span className="flex items-center rounded-l-[14px] border border-r-0 border-white/12 bg-white/5 px-3 text-sm text-[#6B6760] whitespace-nowrap">+223</span>
                     <Input
-                      value={formData.phone.replace(/^\+223\s?/, '')}
-                      onChange={(e) => updateField('phone', e.target.value ? '+223 ' + e.target.value : '')}
+                      required
+                      {...numericPhoneInputProps}
+                      value={digitsOnly(formData.phone.replace(/^\+223\s?/, ''))}
+                      onChange={(e) => updateContactField('phone', toMaliPhone(e.target.value))}
                       placeholder="7X XX XX XX"
                       className="rounded-l-none"
                     />
@@ -310,7 +356,7 @@ export default function PreAnalysis() {
                 </label>
               </div>
             )}
-            {currentStep === 6 && (
+            {currentStep === confirmationStep && (
               <div className="flex flex-col gap-5">
                 <div className="grid gap-2 sm:grid-cols-2">
                   {[
@@ -320,7 +366,7 @@ export default function PreAnalysis() {
                     ['Bien', formData.propertyType],
                     ['Urgence', formData.urgency],
                     ['Profil', hasPersonalProfile(formData) ? 'Renseigne' : 'Non renseigne (facultatif)'],
-                    ['Contact', formData.phone || formData.email || 'À compléter'],
+                    ['Contact', currentUser ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : formData.phone || formData.email || 'À compléter'],
                   ].map(([label, value]) => (
                     <div key={label} className="flex flex-col gap-1 rounded-[10px] p-3" style={{ background: '#1C1C27' }}>
                       <span className="font-mono text-[10px] tracking-[0.15em] text-[#6B6760] uppercase">{label}</span>
@@ -344,7 +390,7 @@ export default function PreAnalysis() {
             <Button type="button" variant="ghost" onClick={goBack} disabled={currentStep === 0 || Boolean(result)}>
               <ArrowLeft size={15} strokeWidth={2} /> Retour
             </Button>
-            {currentStep < 6
+            {currentStep < confirmationStep
               ? (
                 <div className="flex items-center gap-3">
                   {currentStep === 4 && (
@@ -377,10 +423,10 @@ export default function PreAnalysis() {
             {authRequired && (
               <div className="mt-6 rounded-[14px] p-5" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)' }}>
                 <p className="font-semibold text-[#F0EDE8]">Connexion requise</p>
-                <p className="mt-2 text-xs leading-6 text-[#6B6760]">Le brouillon'est conserve localement pour reprendre apres connexion.</p>
-                <button type="button" onClick={() => { writeStorage(DRAFT_KEY, formData); navigate('/auth', { state: { from: '/pre-analysis' } }) }}
+                <p className="mt-2 text-xs leading-6 text-[#6B6760]">Le brouillon est conserve localement. Vos coordonnees seront reprises dans l'inscription.</p>
+                <button type="button" onClick={goToAuth}
                   className={primaryButton + " mt-4 w-full"}>
-                  Se connecter
+                  Continuer
                 </button>
               </div>
             )}

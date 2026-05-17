@@ -34,9 +34,12 @@ services:
       RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-100}
     ports:
       - "3000:3000"
+    volumes:
+      - api_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
 
 volumes:
   postgres_data:
+  api_uploads:

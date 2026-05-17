@@ -4,8 +4,7 @@
  */
 
 export const API_URL =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
-  (import.meta.env.DEV ? 'http://localhost:3000' : '')
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const SESSION_KEY = 'ds-current-user'
 const TOKENS_KEY = 'ds-auth-tokens'

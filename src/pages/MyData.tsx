@@ -143,7 +143,7 @@ export default function MyData() {
   if (!currentUser) return null
 
   return (
-    <div className="px-6 py-10 lg:px-10 lg:py-12">
+    <div className="px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
       <Link to="/mon-espace" className="mb-8 inline-flex items-center gap-2 text-sm text-[#6B6760] hover:text-[#C9A84C]">
         <ArrowLeft size={14} /> Retour a mon espace
       </Link>
@@ -160,7 +160,7 @@ export default function MyData() {
       {profileMessage ? <p className="mb-6 rounded-[14px] border border-emerald-500/20 bg-emerald-500/8 p-4 text-sm text-emerald-300">{profileMessage}</p> : null}
       {accountMessage ? <p className="mb-6 rounded-[14px] border border-emerald-500/20 bg-emerald-500/8 p-4 text-sm text-emerald-300">{accountMessage}</p> : null}
 
-      <section className="mb-12 rounded-[18px] p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <section className="mb-10 rounded-[18px] p-4 sm:mb-12 sm:p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
         <h2 className="font-display text-xl text-[#F0EDE8]">Informations du compte</h2>
         <form onSubmit={(event) => void submitProfile(event)} className="mt-6 grid gap-5 md:grid-cols-2">
           <label className={labelClass}>
@@ -217,7 +217,7 @@ export default function MyData() {
             />
           </label>
           <div className="flex items-end">
-            <Button type="submit" disabled={isSavingProfile}>
+            <Button type="submit" className="w-full md:w-auto" disabled={isSavingProfile}>
               {isSavingProfile ? 'Enregistrement...' : 'Enregistrer mes informations'}
             </Button>
           </div>
@@ -240,7 +240,7 @@ export default function MyData() {
               <div key={prospect.id} className="flex flex-col gap-3">
                 <Button
                   variant="danger"
-                  className="w-fit"
+                  className="w-full sm:w-fit"
                   onClick={() => void deleteProspect(prospect.id)}
                   disabled={savingId === prospect.id}
                 >
@@ -254,8 +254,8 @@ export default function MyData() {
         )}
       </section>
 
-      <section className="rounded-[18px] p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-start gap-4">
+      <section className="rounded-[18px] p-4 sm:p-6" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-red-500/10 text-red-400">
             <Shield size={18} strokeWidth={1.75} />
           </span>
@@ -317,7 +317,7 @@ export default function MyData() {
           <Button
             type="submit"
             variant="danger"
-            className="mt-5"
+            className="mt-5 w-full sm:w-auto"
             disabled={isSubmittingAccount || !reasonId}
           >
             {isSubmittingAccount ? 'Envoi en cours...' : 'Demander la suppression du compte'}

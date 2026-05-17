@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { buildGeneralWhatsAppUrl } from '../utils/whatsapp'
 
 export default function Footer() {
   return (
@@ -18,6 +19,14 @@ export default function Footer() {
           {[['Accueil', '/'], ['Acheter', '/#acheter'], ['Vendre', '/#vendre'], ['Louer', '/#louer'], ['Investir', '/#investir'], ['Analyse Dossier', '/pre-analysis'], ['FAQ', '/faq'], ['Contact', '/contact'], ['Politique de confidentialite', '/privacy']].map(([l, t]) => (
             <Link key={t} to={t} className="label-mono transition-colors hover:text-[#C9A84C]">{l}</Link>
           ))}
+          <a
+            href={buildGeneralWhatsAppUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="label-mono text-emerald-400 transition-colors hover:text-emerald-300"
+          >
+            WhatsApp
+          </a>
           <span className="label-mono">&copy; {new Date().getFullYear()}</span>
         </div>
       </div>
