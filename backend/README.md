@@ -54,7 +54,7 @@ Healthcheck : `GET /health`
 docker compose up --build
 ```
 
-Le service `api` applique les migrations au demarrage puis lance NestJS.
+Le service `api` applique les migrations au demarrage puis lance NestJS. Les uploads d'annonces sont conserves dans le volume Docker `api_uploads`, monte sur `/app/uploads`.
 
 ## Authentification
 
@@ -116,6 +116,40 @@ Enums :
 - `commercialPriority` : `LOW`, `MEDIUM`, `HIGH`
 - `status` : `SENT`, `FAVORITE`, `IN_PROGRESS`, `PRIORITY`, `INCOMPLETE`, `PROCESSED`, `TO_RECONTACT`, `ARCHIVED`
 - `maritalStatus` : `SINGLE`, `MARRIED`, `PARTNERED`, `DIVORCED`, `WIDOWED`, `PREFER_NOT_TO_SAY`
+
+## Avis
+
+Routes publiques et protegees selon l'action :
+
+- `GET /reviews/public`
+- `GET /reviews/me`
+- `POST /reviews/me`
+- `PATCH /reviews/me`
+- `DELETE /reviews/me`
+
+Les routes `me` sont protegees par JWT. Seuls les avis notes 4 ou 5 etoiles sont affiches publiquement.
+
+## Annonces
+
+Routes publiques et protegees selon l'action :
+
+- `GET /listings`
+- `GET /listings/:id`
+- `GET /listings/me/applications`
+- `POST /listings/:id/applications`
+- `PATCH /listings/me/applications/:id`
+
+Routes reservees aux administrateurs :
+
+- `GET /listings/admin/all`
+- `GET /listings/admin/:id`
+- `POST /listings/admin`
+- `PATCH /listings/admin/:id`
+- `DELETE /listings/admin/:id`
+- `POST /listings/admin/uploads`
+- `PATCH /listings/admin/applications/:id/status`
+
+Les candidatures sur annonces exigent un telephone, un budget et les informations utiles au rappel commercial. Les administrateurs peuvent creer, publier, archiver ou supprimer des annonces, ajouter des images et suivre les candidatures.
 
 ## Scoring
 
@@ -190,6 +224,8 @@ Les reponses sont mockees et aucune conversation n'est stockee. Le module est is
 - Refresh tokens hashes et revocables
 - Pas de logs contenant mots de passe, tokens ou messages complets
 - Consentement obligatoire sur la creation d'analyse
+- Candidature annonce protegee par JWT et controle d'acces objet sur les candidatures utilisateur
+- Upload d'images d'annonces limite aux administrateurs
 - Historique interne des analyses supprimees et des pre-analyses liees aux comptes supprimes
 - Demandes de suppression de compte avec statut `PENDING`, `PROCESSED` ou `CANCELLED`
 - Suppression compte avec anonymisation

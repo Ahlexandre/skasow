@@ -112,6 +112,8 @@ docker compose up --build
 
 Cette commande lance PostgreSQL et l'API NestJS. Le conteneur API applique les migrations Prisma avant de démarrer Nest.
 
+Les images d'annonces sont conservées dans le volume Docker `api_uploads`, monté sur `/app/uploads`, afin d'éviter de perdre les fichiers lors d'un redémarrage du conteneur API.
+
 ### Commandes utiles
 
 Frontend :
@@ -145,20 +147,25 @@ DS Conseil Immo est une application immobilière orientée conseil. Elle permet 
 - Catalogue de services immobiliers
 - Détail d'un service via une route dynamique
 - Formulaire de pré-analyse immobilière
+- Parcours de pré-analyse adapté à l'authentification : un utilisateur connecté n'a pas à ressaisir ses coordonnées, un visiteur renseigne nom, prénom, email et téléphone avant l'inscription
 - Scoring automatique du projet
 - Authentification inscription/connexion
+- Préremplissage du formulaire d'inscription depuis les coordonnées collectées en pré-analyse invité
 - Espace utilisateur protégé
 - Modification des données utilisateur : nom, prénom, email et mot de passe
 - Gestion des données personnelles et demandes de suppression de compte
 - Historisation structurée des comptes supprimés et de leurs pré-analyses pendant 3 ans
 - Avis utilisateurs : création, modification, suppression et affichage public des avis 4 ou 5 étoiles
-- Annonces immobilières : création, modification, suppression et publication par les administrateurs
-- Candidatures sur annonces avec budget, métier, situation familiale et message optionnel
-- Upload d'images pour les annonces immobilières
+- Annonces immobilières : liste publique, page détail, galerie d'images cliquables, création, modification, suppression et publication par les administrateurs
+- Candidatures sur annonces avec budget, téléphone obligatoire, métier, situation familiale et message optionnel
+- Upload d'images pour les annonces immobilières, avec persistance des fichiers via volume Docker
+- Actions WhatsApp depuis les pages pertinentes : contact, partage d'annonce et contact rapide depuis une annonce
 - Tableau de bord administrateur protégé par rôle `ADMIN`
 - Gestion admin des utilisateurs, statuts, suppressions et historique
 - Chatbot public avec réponses symboliques, suggestions et reconnaissance vocale côté navigateur
-- Interface chatbot responsive et agrandissable
+- Interface chatbot responsive, agrandissable et bouton flottant accessible sur l'interface utilisateur
+- Interfaces responsive pour mobile, avec navigation mobile adaptée aux usages téléphone
+- Saisie téléphone filtrée côté interface : seuls les chiffres locaux sont acceptés, l'indicatif Mali `+223` est ajouté par l'interface
 - Politique de confidentialité alignée sur les traitements réels de l'application
 - API documentée avec Swagger
 - Persistance PostgreSQL via Prisma
@@ -167,12 +174,13 @@ DS Conseil Immo est une application immobilière orientée conseil. Elle permet 
 
 1. Le visiteur arrive sur la page d'accueil.
 2. Il consulte les services, les annonces, les avis ou lance une pré-analyse.
-3. Le formulaire collecte les informations du projet : type, ville, quartier, budget, surface, urgence, objectif, message et consentement.
-4. Si l'utilisateur n'est pas connecté, il est redirigé vers l'inscription ou la connexion.
-5. Une fois connecté, l'analyse est créée via l'API.
-6. L'utilisateur retrouve ses analyses dans `Mon espace`.
-7. Il peut modifier ou supprimer une pré-analyse, publier un avis, candidater à une annonce ou demander la suppression de son compte depuis `Mes données`.
-8. Un administrateur consulte les analyses, les filtre, repère les prospects prioritaires, modifie les statuts, gère les utilisateurs et suit les candidatures aux annonces.
+3. Le formulaire collecte les informations du projet : type, ville, quartier, budget, surface, urgence, objectif, profil facultatif et consentement.
+4. Si l'utilisateur est connecté, ses coordonnées de compte sont utilisées automatiquement.
+5. Si l'utilisateur n'est pas connecté, il renseigne prénom, nom, email et téléphone ; ces données préremplissent ensuite le formulaire d'inscription.
+6. Une fois connecté, l'analyse est créée via l'API.
+7. L'utilisateur retrouve ses analyses dans `Mon espace`.
+8. Il peut modifier ou supprimer une pré-analyse, publier un avis, candidater à une annonce ou demander la suppression de son compte depuis `Mes données`.
+9. Un administrateur consulte les analyses, les filtre, repère les prospects prioritaires, modifie les statuts, gère les utilisateurs et suit les candidatures aux annonces.
 
 ## Routes frontend
 
@@ -187,6 +195,7 @@ DS Conseil Immo est une application immobilière orientée conseil. Elle permet 
 - `/privacy` : politique de confidentialité
 - `/avis` : avis clients
 - `/annonces` : annonces immobilières publiées
+- `/annonces/:id` : détail public d'une annonce, galerie d'images et candidature
 - `/auth` : connexion et inscription
 - `/mon-espace` : espace utilisateur, protégé
 - `/mes-donnees` : gestion des données utilisateur, protégé
@@ -220,6 +229,8 @@ Services frontend importants :
 - `chatbotService.ts` : appels au chatbot et suggestions
 - `reviewService.ts` : avis utilisateur et avis publics
 - `listingService.ts` : annonces, candidatures et upload d'images
+- `utils/phone.ts` : normalisation et filtrage numérique des téléphones maliens
+- `utils/whatsapp.ts` : génération des liens WhatsApp de contact et de partage d'annonce
 
 ## Architecture backend
 
@@ -333,7 +344,7 @@ Routes réservées aux administrateurs :
 - `POST /listings/admin/uploads`
 - `PATCH /listings/admin/applications/:id/status`
 
-Les administrateurs peuvent créer, modifier, publier, archiver ou supprimer une annonce. Ils peuvent aussi ajouter des images et consulter la liste des utilisateurs intéressés.
+Les administrateurs peuvent créer, modifier, publier, archiver ou supprimer une annonce. Ils peuvent aussi ajouter des images et consulter la liste des utilisateurs intéressés. Côté public, chaque annonce dispose d'une page détail avec galerie d'images cliquables, bouton de partage WhatsApp, contact rapide et formulaire de candidature protégé par connexion. La candidature exige un téléphone afin que DS Conseil puisse rappeler l'utilisateur.
 
 ### Administration
 
