@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProjectType {
+  BUY
+  RENT
+  SELL
+  INVEST
+}
+
+enum MaturityLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CommercialPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AnalysisStatus {
+  SENT
+  FAVORITE
+  IN_PROGRESS
+  PRIORITY
+  INCOMPLETE
+  PROCESSED
+  TO_RECONTACT
+  ARCHIVED
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  PARTNERED
+  DIVORCED
+  WIDOWED
+  PREFER_NOT_TO_SAY
+}
+
+enum AccountDeletionRequestStatus {
+  PENDING
+  PROCESSED
+  CANCELLED
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ListingApplicationStatus {
+  INTERESTED
+  CONTACTED
+  VISIT_SCHEDULED
+  RESERVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id                      String                   @id @default(uuid())
+  firstName               String
+  lastName                String
+  email                   String                   @unique
+  phone                   String?
+  passwordHash            String
+  role                    Role                     @default(USER)
+  deletedAt               DateTime?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  analyses                Analysis[]
+  refreshTokens           RefreshToken[]
+  auditLogs               AuditLog[]
+  accountDeletionRequests AccountDeletionRequest[]
+  reviews                 Review[]
+  listingsCreated         Listing[]                @relation("ListingCreatedBy")
+  listingApplications     ListingApplication[]
+
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  rating    Int
+  comment   String   @db.VarChar(800)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([updatedAt])
+}
+
+model Listing {
+  id           String               @id @default(uuid())
+  title        String
+  description  String
+  propertyType String
+  city         String
+  district     String?
+  address      String?
+  surface      Float?
+  price        Decimal?             @db.Decimal(14, 2)
+  priceLabel   String?
+  rooms        Int?
+  imageUrls    String[]             @default([])
+  status       ListingStatus        @default(DRAFT)
+  createdById  String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  createdBy    User?                @relation("ListingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  applications ListingApplication[]
+
+  @@index([status])
+  @@index([city])
+  @@index([propertyType])
+  @@index([createdAt])
+}
+
+model ListingApplication {
+  id            String                   @id @default(uuid())
+  listingId     String
+  userId        String
+  budget        String
+  phone         String
+  profession    String?
+  maritalStatus MaritalStatus?
+  hasChildren   Boolean?
+  childrenCount Int?
+  message       String?
+  status        ListingApplicationStatus @default(INTERESTED)
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  listing       Listing                  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user          User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, userId])
+  @@index([listingId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Analysis {
+  id                 String             @id @default(uuid())
+  userId             String
+  projectType        ProjectType
+  city               String
+  district           String?
+  budget             Decimal?           @db.Decimal(14, 2)
+  budgetRange        String?
+  propertyType       String?
+  surface            Float?
+  surfaceRange       String?
+  urgency            Urgency
+  objective          String?
+  message            String?
+  profession         String?
+  maritalStatus      MaritalStatus?
+  hasChildren        Boolean?
+  childrenCount      Int?
+  personalNotes      String?
+  consentAccepted    Boolean
+  score              Int
+  maturityLevel      MaturityLevel
+  commercialPriority CommercialPriority
+  profileType        String
+  recommendedService String
+  strengths          String[]
+  missingInfo        String[]
+  recommendations    String[]
+  nextAction         String
+  status             AnalysisStatus     @default(SENT)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectType])
+  @@index([maturityLevel])
+  @@index([commercialPriority])
+  @@index([status])
+  @@index([score])
+  @@index([createdAt])
+}
+
+model AnalysisHistory {
+  id                 String   @id @default(uuid())
+  originalAnalysisId String
+  userId             String?
+  userEmail          String
+  userFirstName      String
+  userLastName       String
+  userPhone          String?
+  snapshot           Json
+  deletedBy          String
+  deletedAt          DateTime @default(now())
+
+  @@index([userId])
+  @@index([deletedAt])
+  @@index([originalAnalysisId])
+}
+
+model AccountDeletionRequest {
+  id                 String                       @id @default(uuid())
+  userId             String
+  reason             String?
+  status             AccountDeletionRequestStatus @default(PENDING)
+  userSnapshot       Json
+  createdAt          DateTime                     @default(now())
+  processedAt        DateTime?
+  processedByAdminId String?
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
