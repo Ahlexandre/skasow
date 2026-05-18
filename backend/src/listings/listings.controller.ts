@@ -23,6 +23,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthenticatedUser } from '../common/types/authenticated-user.type';
+import { getListingUploadDir } from '../common/utils/upload-paths';
 import { CreateListingApplicationDto } from './dto/create-listing-application.dto';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingApplicationDto } from './dto/update-listing-application.dto';
@@ -42,7 +43,7 @@ type UploadedListingFile = {
   size: number;
 };
 
-const listingUploadDir = join(process.cwd(), 'uploads', 'listings');
+const listingUploadDir = getListingUploadDir();
 mkdirSync(listingUploadDir, { recursive: true });
 
 const imageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
