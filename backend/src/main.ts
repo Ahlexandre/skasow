@@ -25,6 +25,7 @@ async function bootstrap() {
     origin: "https://service-frontend-production-aa6d.up.railway.app",
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   });
   app.useGlobalPipes(
     new ValidationPipe({
