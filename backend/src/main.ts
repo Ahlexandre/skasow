@@ -22,8 +22,9 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
   app.enableCors({
-    origin: parseCorsOrigins(config.get<string>('CORS_ORIGIN')),
+    origin: parseCorsOrigin(config.get<string>('CORS_ORIGIN')),
     credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -49,12 +50,33 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
 }
 
-function parseCorsOrigins(value?: string) {
+function parseCorsOrigin(value?: string) {
   if (!value || value === '*') {
     return true;
   }
 
-  return value.split(',').map((origin) => origin.trim());
+  const allowedOrigins = new Set(
+    value
+      .split(',')
+      .map((origin) => normalizeOrigin(origin))
+      .filter(Boolean),
+  );
+
+  return (
+    origin: string | undefined,
+    callback: (error: Error | null, allow?: boolean) => void,
+  ) => {
+    if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  };
+}
+
+function normalizeOrigin(origin: string) {
+  return origin.trim().replace(/\/+$/, '');
 }
 
 void bootstrap();
