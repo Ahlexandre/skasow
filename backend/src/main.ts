@@ -13,12 +13,12 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService);
 
-app.enableCors({
-  origin: 'https://service-frontend-production-aa6d.up.railway.app',
-  credentials: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  allowedHeaders: 'Content-Type, Authorization',
-});
+  app.enableCors({
+    origin: 'https://service-frontend-production-aa6d.up.railway.app',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+  });
   
   app.use(
     helmet({
