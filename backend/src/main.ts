@@ -15,7 +15,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: 'https://service-frontend-production-aa6d.up.railway.app',
-    credentials: true,
+    credentials: false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
   });
