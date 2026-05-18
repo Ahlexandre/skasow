@@ -22,7 +22,7 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
   app.enableCors({
-    origin: parseCorsOrigin(config.get<string>('CORS_ORIGIN')),
+    origin: "https://service-frontend-production-aa6d.up.railway.app",
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
