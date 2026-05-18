@@ -13,13 +13,6 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService);
 
-  app.enableCors({
-    origin: 'https://service-frontend-production-aa6d.up.railway.app',
-    credentials: false,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Authorization',
-  });
-  
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -27,6 +20,10 @@ async function bootstrap() {
   );
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
+  });
+  app.enableCors({
+    origin: parseCorsOrigins(config.get<string>('CORS_ORIGIN')),
+    credentials: true,
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -52,33 +49,12 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
 }
 
-function parseCorsOrigin(value?: string) {
+function parseCorsOrigins(value?: string) {
   if (!value || value === '*') {
     return true;
   }
 
-  const allowedOrigins = new Set(
-    value
-      .split(',')
-      .map((origin) => normalizeOrigin(origin))
-      .filter(Boolean),
-  );
-
-  return (
-    origin: string | undefined,
-    callback: (error: Error | null, allow?: boolean) => void,
-  ) => {
-    if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
-      callback(null, true);
-      return;
-    }
-
-    callback(null, false);
-  };
-}
-
-function normalizeOrigin(origin: string) {
-  return origin.trim().replace(/\/+$/, '');
+  return value.split(',').map((origin) => origin.trim());
 }
 
 void bootstrap();
