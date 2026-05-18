@@ -13,6 +13,13 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService);
 
+app.enableCors({
+  origin: 'https://service-frontend-production-aa6d.up.railway.app',
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type, Authorization',
+});
+  
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -20,12 +27,6 @@ async function bootstrap() {
   );
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
-  });
-  app.enableCors({
-    origin: "https://service-frontend-production-aa6d.up.railway.app",
-    credentials: true,
-    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
   });
   app.useGlobalPipes(
     new ValidationPipe({
