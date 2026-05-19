@@ -1,6 +1,10 @@
 node_modules
 dist
 backend
+.env
+.env.*
+!.env.example
+!.env.docker.example
 .git
 .gitignore
 README.md
